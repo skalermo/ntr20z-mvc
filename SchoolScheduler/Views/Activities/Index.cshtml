@@ -1,0 +1,11 @@
+@model Data
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Index</h2>
+@foreach (var activity in Model.Activities)
+{
+    <p>@activity.Room</p><br>
+}
