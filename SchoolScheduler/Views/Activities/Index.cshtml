@@ -5,7 +5,31 @@
 }
 
 <h2>Index</h2>
-@foreach (var activity in Model.Activities)
-{
-    <p>@activity.Room</p><br>
-}
+
+
+@{ string[] headerSlots = { "time", "Mo", "Tu", "We", "Th", "Fr" }; }
+@{ string[] activitiesTimes = { "8:00-8:45", "8:55-9:40", "9:50-11:35", 
+                                "11:55-12:40", "12:50-13:55", "13:45-14:30", 
+                                "14:40-15:25", "15:35-16:20", "16:30-17:15" }; }
+
+
+<div class="wrapper">
+    @* Mo, Tu, We, Th, Fr, Sa, Su *@
+    @foreach (var slot in headerSlots)
+    {
+        <div class="slot header">@slot</div>
+    }
+
+    @for (int row = 0; row < 10-1; row++)
+    {
+        @* 8:00-8:45, 8:55-8:9:40, 9:50-11:35, 11:55-12:40, 12:50-13:55, 
+        13:45-14:30, 14:40-15:25, 15:35-16:20, 16:30-17:15 *@
+        <div class="slot index">@(activitiesTimes[row])</div>
+
+        @for (int col = 0; col < 6-1; col++)
+        {
+            <div class="slot">Slot @(row*5 + col)</div>
+        }
+    }
+
+</div>
