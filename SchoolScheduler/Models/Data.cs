@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -21,7 +22,6 @@ namespace SchoolScheduler.Models
         public List<Activity> Activities { get; set; }
         public bool Delete(Option selectedOption, string valueToDelete)
         {
-            List<string> values = new List<string>();
             switch (selectedOption)
             {
                 case Option.Rooms:
@@ -35,6 +35,27 @@ namespace SchoolScheduler.Models
                     break;
                 case Option.Teachers:
                     Teachers.Remove(valueToDelete);
+                    break;
+            }
+
+            return true;
+        }
+
+        public bool Add(Option selectedOption, string valueToAdd)
+        {
+            switch (selectedOption)
+            {
+                case Option.Rooms:
+                    Rooms.Insert(0, valueToAdd);
+                    break;
+                case Option.Groups:
+                    Groups.Insert(0, valueToAdd);
+                    break;
+                case Option.Classes:
+                    Classes.Insert(0, valueToAdd);
+                    break;
+                case Option.Teachers:
+                    Teachers.Insert(0, valueToAdd);
                     break;
             }
 
