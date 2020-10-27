@@ -1,0 +1,41 @@
+@using System.Collections.Generic;
+@model OptionList;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Index", "Manage", FormMethod.Get))
+{
+    @Html.DropDownListFor(model => model.selected, new SelectList(Enum.GetValues(typeof(Option))), "Select option",
+new { onchange="this.form.submit();" })
+}
+
+
+    @using (Html.BeginForm())
+{
+    <div>
+        <table class="table table-hover">
+            <tr>
+                <th>
+                    @Model.selected
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+            @foreach (var item in Model.values)
+            {
+                <tr>
+                    <td>
+                        @item
+                    </td>
+                    <td>
+                        @Html.ActionLink("Delete", "Delete", new {selected=Model.selected, valueToDelete=item})
+                    </td>
+                </tr>
+            }
+
+        </table>
+    </div>
+}
