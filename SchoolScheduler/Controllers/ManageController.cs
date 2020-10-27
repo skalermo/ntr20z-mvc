@@ -43,5 +43,16 @@ namespace SchoolScheduler.Controllers
             return RedirectToAction("Index", new { selected });
 
         }
+
+        public ActionResult Add(Option selected, string newValue)
+        {
+
+            Serde serde = new Serde();
+            Data data = serde.deserialize("data.json");
+            data.Add(selected, newValue);
+            serde.serialize(data, "data.json");
+
+            return RedirectToAction("Index", new { selected });
+        }
     }
 }

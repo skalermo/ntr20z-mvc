@@ -7,12 +7,23 @@
 
 @using (Html.BeginForm("Index", "Manage", FormMethod.Get))
 {
-    @Html.DropDownListFor(model => model.selected, new SelectList(Enum.GetValues(typeof(Option))), "Select option",
-new { onchange="this.form.submit();" })
+    <div class="form-group">
+        @Html.DropDownListFor(model => model.selected, new SelectList(Enum.GetValues(typeof(Option))),
+    new { onchange="this.form.submit();" })
+    </div>
 }
 
+@using (Html.BeginForm("Add", "Manage", FormMethod.Get))
+{
+    <div class="form-group">
+        @Html.Label("Add new ")
+        @Html.TextBox("newValue")
+        <input type="hidden" name="selected" value=@Model.selected />
+        <button type="submit" class="btn btn-link">Submit</button>
+    </div>
+}
 
-    @using (Html.BeginForm())
+@using (Html.BeginForm())
 {
     <div>
         <table class="table table-hover">
