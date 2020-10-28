@@ -1,16 +1,19 @@
 @model Data
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Activities panel";
+    ViewData["Title"] = "Activities panel";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h2>Index</h2>
 
 
-@{ string[] headerSlots = { "time", "Mo", "Tu", "We", "Th", "Fr" }; }
-@{ string[] activitiesTimes = { "8:00-8:45", "8:55-9:40", "9:50-11:35", 
-                                "11:55-12:40", "12:50-13:55", "13:45-14:30", 
-                                "14:40-15:25", "15:35-16:20", "16:30-17:15" }; }
+@{
+    string[] headerSlots = { "time", "Mo", "Tu", "We", "Th", "Fr" }; }
+@{
+    string[] activitiesTimes = { "8:00-8:45", "8:55-9:40", "9:50-11:35",
+        "11:55-12:40", "12:50-13:55", "13:45-14:30",
+        "14:40-15:25", "15:35-16:20", "16:30-17:15" }; }
 
 
 <div class="wrapper">
@@ -20,13 +23,12 @@
         <div class="slot header">@slot</div>
     }
 
-    @for (int row = 0; row < 10-1; row++)
+    @for (int row = 0; row < 10 - 1; row++)
     {
-        @* 8:00-8:45, 8:55-8:9:40, 9:50-11:35, 11:55-12:40, 12:50-13:55, 
-        13:45-14:30, 14:40-15:25, 15:35-16:20, 16:30-17:15 *@
+        @* 8:00-8:45, 8:55-8:9:40, 9:50-11:35, 11:55-12:40, 12:50-13:55,
+            13:45-14:30, 14:40-15:25, 15:35-16:20, 16:30-17:15 *@
         <div class="slot index">@(activitiesTimes[row])</div>
-
-        @for (int col = 0; col < 6-1; col++)
+        @for (int col = 0; col < 6 - 1; col++)
         {
             <div class="slot">Slot @(row*5 + col)</div>
         }
