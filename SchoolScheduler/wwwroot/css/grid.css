@@ -25,7 +25,7 @@ p {
 }
 
 .wrapper > * {
-  background-color: #444;
+  background-color: #ececec;
   color: #fff;
   border-radius: 3px;
   padding: 10px;
@@ -39,26 +39,35 @@ p {
   }
 }
 
+a.fill-div {
+    display: block;
+    height: 100%;
+    width: 100%;
+    text-decoration: none;
+}
+
 .slot {
   color: black;
-  background-color: #eeeeee;
+  background-color: white;
+
+  border: solid #000;
+  border-width: 1px;
+
 }
 
 .slot.index {
-  color: white;
-  background-color: #444;
+  background-color: #ccc;
   pointer-events: none;
 }
 
 .slot.header {
-  color: white;
-  background-color: #444;
+  background-color: #ccc;
   font-weight: bold;
   pointer-events: none;
 }
 
 .slot:hover {
-  color: white;
-  background-color: #66ccff;
-  box-shadow: inset 0 0 10px #029bd8;
+  color: black;
+  background-color: #eee;
+  /* background-color: #eee; */
 }
