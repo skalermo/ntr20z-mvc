@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Index</h2>
+<h2>Activities panel</h2>
 
 
 @{
@@ -14,7 +14,6 @@
     string[] activitiesTimes = { "8:00-8:45", "8:55-9:40", "9:50-11:35",
         "11:55-12:40", "12:50-13:55", "13:45-14:30",
         "14:40-15:25", "15:35-16:20", "16:30-17:15" }; }
-
 
 <div class="wrapper">
     @* Mo, Tu, We, Th, Fr, Sa, Su *@
@@ -30,7 +29,9 @@
         <div class="slot index">@(activitiesTimes[row])</div>
         @for (int col = 0; col < 6 - 1; col++)
         {
-            <div class="slot">Slot @(row*5 + col)</div>
+            <a href="#" class="fill-div slot">
+                Slot @(row*5 + col)
+            </a>
         }
     }
 
