@@ -4,10 +4,6 @@ namespace SchoolScheduler.Models
 {
     public class Activity
     {
-        public Activity()
-        {
-            isEmpty = true;
-        }
         [JsonPropertyName("room")]
         public string Room { get; set; }
 
@@ -22,7 +18,5 @@ namespace SchoolScheduler.Models
 
         [JsonPropertyName("teacher")]
         public string Teacher { get; set; }
-
-        public bool isEmpty { get; set; }
     }
 }
