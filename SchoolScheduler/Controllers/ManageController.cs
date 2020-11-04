@@ -33,6 +33,7 @@ namespace SchoolScheduler.Controllers
             return View(optionList);
         }
 
+        [HttpPost]
         public ActionResult Delete(Option selected, string valueToDelete)
         {
             Serde serde = new Serde();
@@ -44,6 +45,7 @@ namespace SchoolScheduler.Controllers
 
         }
 
+        [HttpPost]
         public ActionResult Add(Option selected, string newValue)
         {
 

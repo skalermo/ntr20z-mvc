@@ -16,7 +16,7 @@
     </div>
 }
 
-@using (Html.BeginForm("Add", "Manage", FormMethod.Get))
+@using (Html.BeginForm("Add", "Manage", FormMethod.Post))
 {
     <div class="form-group">
         @Html.Label("Add new ")
@@ -26,8 +26,9 @@
     </div>
 }
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("Delete", "Manage", FormMethod.Post))
 {
+    <input type="hidden" name="selected" value=@Model.selected />
     <div>
         <table class="table table-hover">
             <tr>
@@ -45,7 +46,9 @@
                         @item
                     </td>
                     <td>
-                        @Html.ActionLink("Delete", "Delete", new {selected=Model.selected, valueToDelete=item})
+                        <input type="hidden" name="valueToDelete" value=@item />
+                        @* @Html.ActionLink("Delete", "Delete", new {selected=Model.selected, valueToDelete=item}) *@
+                        <button type="submit" class="btn btn-link">Delete</button>
                     </td>
                 </tr>
             }
