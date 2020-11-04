@@ -1,12 +1,9 @@
-@model Data
+@model ActivityFilterOptionList
 @{
     ViewBag.Title = "Activities panel";
     ViewData["Title"] = "Activities panel";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h2>Activities panel</h2>
-
 
 @{
     string[] headerSlots = { "time", "Mo", "Tu", "We", "Th", "Fr" };
@@ -16,6 +13,27 @@
     const int rows = 9;
     const int cols = 5;
 }
+
+<h2>Activities panel</h2>
+
+@using (Html.BeginForm("ChooseOption", "Activities", FormMethod.Post))
+{
+    <div class="form-group">
+        @Html.DropDownListFor(model => model.selected,
+    new SelectList(Enum.GetValues(typeof(ActivityFilterOption))),
+    new { onchange="this.form.submit();" })
+    </div>
+}
+@*
+    @using (Html.BeginForm("ChooseOption", "Activities", FormMethod.Post))
+    {
+    <div class="form-group">
+    @Html.DropDownListFor(m => m.selected,
+    Model.values,
+    new { onchange="this.form.submit();" })
+    </div>
+    } *@
+
 
 <div class="wrapper">
     @* Mo, Tu, We, Th, Fr, Sa, Su *@
@@ -27,7 +45,7 @@
     @{
         int i = 0;
     }
-    @foreach (var item in Model.Activities)
+    @foreach (var item in ViewBag.activities)
     {
         if (i % cols == 0)
         {
@@ -37,7 +55,7 @@
         }
 
         <a href="#" class="fill-div slot" data-toggle="modal" data-target="#exampleModal" data-room="@(item.Room)"
-        data-group="@(item.Group)" data-class="@(item.Class)" data-teacher="@(item.Teacher)">
+            data-group="@(item.Group)" data-class="@(item.Class)" data-teacher="@(item.Teacher)">
             @if (item.Slot != -1)
             {
                 @item.Slot
