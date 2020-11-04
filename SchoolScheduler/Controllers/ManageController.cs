@@ -8,8 +8,18 @@ namespace SchoolScheduler.Controllers
 {
     public class ManageController : Controller
     {
-        public ActionResult Index(Option selected)
+        public ActionResult Index()
         {
+            Option selected;
+            if (TempData["selected"] != null)
+            {
+                selected = (Option)TempData["selected"];
+            }
+            else
+            {
+                selected = Option.Rooms;
+            }
+
             OptionList optionList = new OptionList();
             Data data = new Serde().deserialize("data.json");
 
@@ -34,6 +44,13 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
+        public ActionResult SelectOption(Option selected)
+        {
+            TempData["selected"] = selected;
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
         public ActionResult Delete(Option selected, string valueToDelete)
         {
             Serde serde = new Serde();
@@ -41,7 +58,8 @@ namespace SchoolScheduler.Controllers
             data.Delete(selected, valueToDelete);
             serde.serialize(data, "data.json");
 
-            return RedirectToAction("Index", new { selected });
+            TempData["selected"] = selected;
+            return RedirectToAction("Index");
 
         }
 
@@ -54,7 +72,8 @@ namespace SchoolScheduler.Controllers
             data.Add(selected, newValue);
             serde.serialize(data, "data.json");
 
-            return RedirectToAction("Index", new { selected });
+            TempData["selected"] = selected;
+            return RedirectToAction("Index");
         }
     }
 }

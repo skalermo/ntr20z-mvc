@@ -8,7 +8,7 @@
 
 <h2>Manage panel</h2>
 
-@using (Html.BeginForm("Index", "Manage", FormMethod.Get))
+@using (Html.BeginForm("SelectOption", "Manage", FormMethod.Post))
 {
     <div class="form-group">
         @Html.DropDownListFor(model => model.selected, new SelectList(Enum.GetValues(typeof(Option))),
