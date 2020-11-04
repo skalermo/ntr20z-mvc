@@ -10,31 +10,27 @@ namespace SchoolScheduler.Controllers
     {
         public ActionResult Index()
         {
-            Option selected;
+            ManageOption selected = ManageOption.Rooms;
             if (TempData["selected"] != null)
             {
-                selected = (Option)TempData["selected"];
-            }
-            else
-            {
-                selected = Option.Rooms;
+                selected = (ManageOption)TempData["selected"];
             }
 
-            OptionList optionList = new OptionList();
+            ManageOptionList optionList = new ManageOptionList();
             Data data = new Serde().deserialize("data.json");
 
             switch (selected)
             {
-                case Option.Rooms:
+                case ManageOption.Rooms:
                     optionList.values = data.Rooms;
                     break;
-                case Option.Groups:
+                case ManageOption.Groups:
                     optionList.values = data.Groups;
                     break;
-                case Option.Classes:
+                case ManageOption.Classes:
                     optionList.values = data.Classes;
                     break;
-                case Option.Teachers:
+                case ManageOption.Teachers:
                     optionList.values = data.Teachers;
                     break;
             }
@@ -44,14 +40,14 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult SelectOption(Option selected)
+        public ActionResult SelectOption(ManageOption selected)
         {
             TempData["selected"] = selected;
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public ActionResult Delete(Option selected, string valueToDelete)
+        public ActionResult Delete(ManageOption selected, string valueToDelete)
         {
             Serde serde = new Serde();
             Data data = serde.deserialize("data.json");
@@ -64,7 +60,7 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult Add(Option selected, string newValue)
+        public ActionResult Add(ManageOption selected, string newValue)
         {
 
             Serde serde = new Serde();

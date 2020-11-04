@@ -13,28 +13,24 @@ namespace SchoolScheduler.Controllers
         // GET: Activities
         public ActionResult Index()
         {
-            ActivityFilterOption selected;
+            ActivityOption selected = ActivityOption.Rooms;
             if (TempData["selected"] != null)
             {
-                selected = (ActivityFilterOption)TempData["selected"];
-            }
-            else
-            {
-                selected = ActivityFilterOption.Rooms;
+                selected = (ActivityOption)TempData["selected"];
             }
 
-            var optionList = new ActivityFilterOptionList();
+            var optionList = new ActivityOptionList();
             Data data = new Serde().deserialize("data.json");
 
             switch (selected)
             {
-                case ActivityFilterOption.Rooms:
+                case ActivityOption.Rooms:
                     optionList.values = data.Rooms;
                     break;
-                case ActivityFilterOption.Groups:
+                case ActivityOption.Groups:
                     optionList.values = data.Groups;
                     break;
-                case ActivityFilterOption.Teachers:
+                case ActivityOption.Teachers:
                     optionList.values = data.Teachers;
                     break;
             }
@@ -60,7 +56,7 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult ChooseOption(ActivityFilterOption selected)
+        public ActionResult ChooseOption(ActivityOption selected)
         {
             TempData["selected"] = selected;
             return RedirectToAction("Index");

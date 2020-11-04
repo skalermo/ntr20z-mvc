@@ -20,20 +20,20 @@ namespace SchoolScheduler.Models
 
         [JsonPropertyName("activities")]
         public List<Activity> Activities { get; set; }
-        public bool Delete(Option selectedOption, string valueToDelete)
+        public bool Delete(ManageOption selectedOption, string valueToDelete)
         {
             switch (selectedOption)
             {
-                case Option.Rooms:
+                case ManageOption.Rooms:
                     Rooms.Remove(valueToDelete);
                     break;
-                case Option.Groups:
+                case ManageOption.Groups:
                     Groups.Remove(valueToDelete);
                     break;
-                case Option.Classes:
+                case ManageOption.Classes:
                     Classes.Remove(valueToDelete);
                     break;
-                case Option.Teachers:
+                case ManageOption.Teachers:
                     Teachers.Remove(valueToDelete);
                     break;
             }
@@ -41,20 +41,20 @@ namespace SchoolScheduler.Models
             return true;
         }
 
-        public bool Add(Option selectedOption, string valueToAdd)
+        public bool Add(ManageOption selectedOption, string valueToAdd)
         {
             switch (selectedOption)
             {
-                case Option.Rooms:
+                case ManageOption.Rooms:
                     Rooms.Insert(0, valueToAdd);
                     break;
-                case Option.Groups:
+                case ManageOption.Groups:
                     Groups.Insert(0, valueToAdd);
                     break;
-                case Option.Classes:
+                case ManageOption.Classes:
                     Classes.Insert(0, valueToAdd);
                     break;
-                case Option.Teachers:
+                case ManageOption.Teachers:
                     Teachers.Insert(0, valueToAdd);
                     break;
             }

@@ -1,4 +1,4 @@
-@model ActivityFilterOptionList
+@model ActivityOptionList
 @{
     ViewBag.Title = "Activities panel";
     ViewData["Title"] = "Activities panel";
@@ -20,7 +20,7 @@
 {
     <div class="form-group">
         @Html.DropDownListFor(model => model.selected,
-    new SelectList(Enum.GetValues(typeof(ActivityFilterOption))),
+    new SelectList(Enum.GetValues(typeof(ActivityOption))),
     new { onchange="this.form.submit();" })
     </div>
 }
