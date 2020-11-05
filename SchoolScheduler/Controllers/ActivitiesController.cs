@@ -62,13 +62,6 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult SelectOption(ActivityOption selectedOption)
-        {
-            TempData["selectedOption"] = selectedOption;
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
         public ActionResult SelectOptionValue(ActivityOption selectedOption, string selectedValue)
         {
             TempData["selectedOption"] = selectedOption;
