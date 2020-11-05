@@ -73,14 +73,58 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpGet]
-        public PartialViewResult GetModalData()
+        public ActionResult ActivityModal(ActivityOption selectedOption, string selectedValue, int slot)
         {
-            return PartialView();
+            Data data = new Serde().deserialize("data.json");
+            var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
+            var filtered = filteredActivities.Where(a => a.Slot == slot);
+            Activity activity;
+            if (filtered.Any())
+            {
+                activity = filtered.ElementAt(0);
+            }
+            else
+            {
+                activity = new Activity();
+            }
+
+            return PartialView(activity);
+        }
+
+        [HttpGet]
+        private List<Activity> getFilteredActivities(ActivityOption selectedOption, string selectedValue)
+        {
+
+            Data data = new Serde().deserialize("data.json");
+            var filteredActivities = new List<Activity>();
+
+            foreach (var activity in data.Activities)
+            {
+                string value;
+                switch (selectedOption)
+                {
+                    case ActivityOption.Rooms:
+                    default:
+                        value = activity.Room;
+                        break;
+                    case ActivityOption.Groups:
+                        value = activity.Group;
+                        break;
+                    case ActivityOption.Teachers:
+                        value = activity.Teacher;
+                        break;
+                }
+                if (value == selectedValue)
+                {
+                    filteredActivities.Add(activity);
+                }
+            }
+            return filteredActivities;
         }
 
         private List<string> GenerateLabels(ActivityOption selectedOption, string selectedValue)
         {
-            Data data = new Serde().deserialize("data.json");
+            var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
 
             const int rows = 9;
             const int cols = 5;
@@ -90,30 +134,23 @@ namespace SchoolScheduler.Controllers
                 labels[i] = "";
             }
 
-            foreach (var activity in data.Activities)
+            foreach (var activity in filteredActivities)
             {
-                string value;
                 string strToShow;
                 switch (selectedOption)
                 {
                     case ActivityOption.Rooms:
                     default:
-                        value = activity.Room;
                         strToShow = activity.Group;
                         break;
                     case ActivityOption.Groups:
-                        value = activity.Group;
                         strToShow = activity.Room + " " + activity.Class;
                         break;
                     case ActivityOption.Teachers:
-                        value = activity.Teacher;
                         strToShow = activity.Room + " " + activity.Class + " " + activity.Group;
                         break;
                 }
-                if (value == selectedValue)
-                {
-                    labels[activity.Slot] = strToShow;
-                }
+                labels[activity.Slot] = strToShow;
             }
             return labels;
         }
