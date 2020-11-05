@@ -4,6 +4,10 @@ namespace SchoolScheduler.Models
 {
     public class Activity
     {
+        public Activity()
+        {
+            Slot = -1;
+        }
         [JsonPropertyName("room")]
         public string Room { get; set; }
 
