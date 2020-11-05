@@ -13,16 +13,21 @@ namespace SchoolScheduler.Controllers
         // GET: Activities
         public ActionResult Index()
         {
-            ActivityOption selected = ActivityOption.Rooms;
-            if (TempData["selected"] != null)
+            ActivityOption selectedOption = ActivityOption.Rooms;
+            if (TempData["selectedOption"] != null)
             {
-                selected = (ActivityOption)TempData["selected"];
+                selectedOption = (ActivityOption)TempData["selectedOption"];
+            }
+            string selectedValue = "";
+            if (TempData["selectedValue"] != null)
+            {
+                selectedValue = (string)TempData["selectedValue"];
             }
 
             var optionList = new ActivityOptionList();
             Data data = new Serde().deserialize("data.json");
 
-            switch (selected)
+            switch (selectedOption)
             {
                 case ActivityOption.Rooms:
                     optionList.values = data.Rooms;
@@ -34,7 +39,8 @@ namespace SchoolScheduler.Controllers
                     optionList.values = data.Teachers;
                     break;
             }
-            optionList.selected = selected;
+            optionList.selectedOption = selectedOption;
+            optionList.selectedValue = selectedValue;
 
             const int rows = 9;
             const int cols = 5;
@@ -50,15 +56,23 @@ namespace SchoolScheduler.Controllers
 
             // ViewBag.selected = new ActivityFilterOptionList();
 
-            // var tupleModel = new Tuple<ActivityFilterOptionList, List<Activity>>(optionList, activities);
             ViewBag.activities = activities;
+
             return View(optionList);
         }
 
         [HttpPost]
-        public ActionResult ChooseOption(ActivityOption selected)
+        public ActionResult SelectOption(ActivityOption selectedOption)
         {
-            TempData["selected"] = selected;
+            TempData["selectedOption"] = selectedOption;
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public ActionResult SelectOptionValue(ActivityOption selectedOption, string selectedValue)
+        {
+            TempData["selectedOption"] = selectedOption;
+            TempData["selectedValue"] = selectedValue;
             return RedirectToAction("Index");
         }
     }
