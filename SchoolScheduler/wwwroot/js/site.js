@@ -3,18 +3,15 @@
 
 // Write your JavaScript code.
 
-$('#exampleModal').on('show.bs.modal', function (event) {
+$('#activityModal').on('show.bs.modal', function (event) {
     var a = $(event.relatedTarget) // Button that triggered the modal
+    var url = a.data('url');
 
-    var room = a.data('room') // Extract info from data-* attributes
-    var group = a.data('group')
-    var klass = a.data('class')
-    var teacher = a.data('teacher')
+    $.get(url, function (data) {
+        $('#activityModal').html(data);
 
-    var modal = $(this)
-    modal.find('.modal-title').text('something different')
-    modal.find('input[id=room]').val(room)
-    modal.find('input[id=group]').val(group)
-    modal.find('input[id=class]').val(klass)
-    modal.find('input[id=teacher]').val(teacher)
+        $('#activityModal').modal('show');
+    });
+
+
 })
