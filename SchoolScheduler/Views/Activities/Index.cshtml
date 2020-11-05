@@ -16,25 +16,29 @@
 
 <h2>Activities panel</h2>
 
-@using (Html.BeginForm("SelectOptionValue", "Activities", FormMethod.Post))
-{
-    <div class="row ml-1 form-group">
+<div class="row ml-1 form-group">
+    @using (Html.BeginForm("SelectOption", "Activities", FormMethod.Post))
+    {
         <div class="col-md-1.5 pr-2">
             @Html.DropDownListFor(model => model.selectedOption,
         new SelectList(Enum.GetValues(typeof(ActivityOption))),
         new { onchange="this.form.submit();" })
 
         </div>
+    }
 
+    @using (Html.BeginForm("SelectOptionValue", "Activities", FormMethod.Post))
+    {
         <div class="col-md-1.5">
             @* <label>@Model.selected</label> *@
             @Html.DropDownListFor(model => model.selectedValue,
         new SelectList(Model.values),
         new { onchange="this.form.submit();" })
-            @* <input type="hidden" name="selectedOption" value=@Model.selectedOption /> *@
+            <input type="hidden" name="selectedOption" value=@Model.selectedOption />
         </div>
-    </div>
-}
+    }
+</div>
+
 
 
 <div class="wrapper">
@@ -47,7 +51,7 @@
     @{
         int i = 0;
     }
-    @foreach (var item in ViewBag.activities)
+    @foreach (var label in ViewBag.activityLabels)
     {
         if (i % cols == 0)
         {
@@ -56,29 +60,13 @@
             <div class="slot index">@(activitiesTimes[i/cols])</div>
         }
 
-        <a href="#" class="fill-div slot" data-toggle="modal" data-target="#exampleModal" data-room="@(item.Room)"
-            data-group="@(item.Group)" data-class="@(item.Class)" data-teacher="@(item.Teacher)">
-            @if (item.Slot != -1)
-            {
-                @item.Slot
-            }
-            </a>
+        <a href="#" class="fill-div slot" data-toggle="modal" @* data-target="#exampleModal" data-room="@(item.Room)"
+                data-group="@(item.Group)" data-class="@(item.Class)" data-teacher="@(item.Teacher)" *@>
+            @label
+        </a>
         i++;
     }
 
-    @* @for (int row = 0; row < 10 - 1; row++) *@
-    @* { *@
-    @* 8:00-8:45, 8:55-8:9:40, 9:50-11:35, 11:55-12:40, 12:50-13:55,
-        13:45-14:30, 14:40-15:25, 15:35-16:20, 16:30-17:15 *@
-    @* <div class="slot index">@(activitiesTimes[row])</div> *@
-    @* @for (int col = 0; col < 6 - 1; col++) *@
-    @* { *@
-    @* <a href="#" class="fill-div slot"> *@
-    @* Slot @(row*5 + col) *@
-
-    @* </a> *@
-    @* } *@
-    @* } *@
 
 </div>
 

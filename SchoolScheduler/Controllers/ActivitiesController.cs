@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+using System.Security.Cryptography.X509Certificates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +20,6 @@ namespace SchoolScheduler.Controllers
             {
                 selectedOption = (ActivityOption)TempData["selectedOption"];
             }
-            string selectedValue = "";
-            if (TempData["selectedValue"] != null)
-            {
-                selectedValue = (string)TempData["selectedValue"];
-            }
 
             var optionList = new ActivityOptionList();
             Data data = new Serde().deserialize("data.json");
@@ -39,26 +36,32 @@ namespace SchoolScheduler.Controllers
                     optionList.values = data.Teachers;
                     break;
             }
+            string selectedValue = "";
+            if (optionList.values.Any())
+            {
+                selectedValue = optionList.values[0];
+            }
+            if (TempData["selectedValue"] != null)
+            {
+                selectedValue = (string)TempData["selectedValue"];
+            }
             optionList.selectedOption = selectedOption;
             optionList.selectedValue = selectedValue;
 
-            const int rows = 9;
-            const int cols = 5;
-            List<Activity> activities = new List<Activity>();
-            for (int i = 0; i < rows * cols; i++)
-            {
-                activities.Add(new Activity());
-            }
-            foreach (var item in data.Activities)
-            {
-                activities[item.Slot] = item;
-            }
 
+            var activityLabels = GenerateLabels(selectedOption, selectedValue);
             // ViewBag.selected = new ActivityFilterOptionList();
 
-            ViewBag.activities = activities;
+            ViewBag.activityLabels = activityLabels;
 
             return View(optionList);
+        }
+
+        [HttpPost]
+        public ActionResult SelectOption(ActivityOption selectedOption)
+        {
+            TempData["selectedOption"] = selectedOption;
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -67,6 +70,52 @@ namespace SchoolScheduler.Controllers
             TempData["selectedOption"] = selectedOption;
             TempData["selectedValue"] = selectedValue;
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public PartialViewResult GetModalData()
+        {
+            return PartialView();
+        }
+
+        private List<string> GenerateLabels(ActivityOption selectedOption, string selectedValue)
+        {
+            Data data = new Serde().deserialize("data.json");
+
+            const int rows = 9;
+            const int cols = 5;
+            var labels = new List<string>(new string[rows * cols]);
+            for (int i = 0; i < rows * cols; i++)
+            {
+                labels[i] = "";
+            }
+
+            foreach (var activity in data.Activities)
+            {
+                string value;
+                string strToShow;
+                switch (selectedOption)
+                {
+                    case ActivityOption.Rooms:
+                    default:
+                        value = activity.Room;
+                        strToShow = activity.Group;
+                        break;
+                    case ActivityOption.Groups:
+                        value = activity.Group;
+                        strToShow = activity.Room + " " + activity.Class;
+                        break;
+                    case ActivityOption.Teachers:
+                        value = activity.Teacher;
+                        strToShow = activity.Room + " " + activity.Class + " " + activity.Group;
+                        break;
+                }
+                if (value == selectedValue)
+                {
+                    labels[activity.Slot] = strToShow;
+                }
+            }
+            return labels;
         }
     }
 }
