@@ -88,6 +88,13 @@ namespace SchoolScheduler.Controllers
                 activity = new Activity();
             }
 
+            ViewBag.selectedOption = selectedOption;
+            ViewBag.selectedValue = selectedValue;
+            ViewBag.rooms = data.Rooms;
+            ViewBag.classes = data.Classes;
+            ViewBag.groups = data.Groups;
+            ViewBag.teachers = data.Teachers;
+
             return PartialView(activity);
         }
 
