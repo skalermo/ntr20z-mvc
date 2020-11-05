@@ -17,9 +17,9 @@ namespace SchoolScheduler.Models
     {
         public ManageOptionList()
         {
-            selected = ManageOption.Rooms;
+            selectedOption = ManageOption.Rooms;
         }
-        public ManageOption selected { get; set; }
+        public ManageOption selectedOption { get; set; }
         public List<string> values { get; set; }
     }
     public enum ActivityOption
@@ -33,9 +33,10 @@ namespace SchoolScheduler.Models
     {
         public ActivityOptionList()
         {
-            selected = ActivityOption.Rooms;
+            selectedOption = ActivityOption.Rooms;
         }
-        public ActivityOption selected { get; set; }
+        public ActivityOption selectedOption { get; set; }
+        public string selectedValue { get; set; }
         public List<string> values { get; set; }
     }
 }

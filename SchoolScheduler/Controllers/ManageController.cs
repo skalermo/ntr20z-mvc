@@ -10,16 +10,16 @@ namespace SchoolScheduler.Controllers
     {
         public ActionResult Index()
         {
-            ManageOption selected = ManageOption.Rooms;
+            ManageOption selectedOption = ManageOption.Rooms;
             if (TempData["selected"] != null)
             {
-                selected = (ManageOption)TempData["selected"];
+                selectedOption = (ManageOption)TempData["selected"];
             }
 
             ManageOptionList optionList = new ManageOptionList();
             Data data = new Serde().deserialize("data.json");
 
-            switch (selected)
+            switch (selectedOption)
             {
                 case ManageOption.Rooms:
                     optionList.values = data.Rooms;
@@ -34,41 +34,41 @@ namespace SchoolScheduler.Controllers
                     optionList.values = data.Teachers;
                     break;
             }
-            optionList.selected = selected;
+            optionList.selectedOption = selectedOption;
 
             return View(optionList);
         }
 
         [HttpPost]
-        public ActionResult SelectOption(ManageOption selected)
+        public ActionResult SelectOption(ManageOption selectedOption)
         {
-            TempData["selected"] = selected;
+            TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public ActionResult Delete(ManageOption selected, string valueToDelete)
+        public ActionResult Delete(ManageOption selectedOption, string valueToDelete)
         {
             Serde serde = new Serde();
             Data data = serde.deserialize("data.json");
-            data.Delete(selected, valueToDelete);
+            data.Delete(selectedOption, valueToDelete);
             serde.serialize(data, "data.json");
 
-            TempData["selected"] = selected;
+            TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
 
         }
 
         [HttpPost]
-        public ActionResult Add(ManageOption selected, string newValue)
+        public ActionResult Add(ManageOption selectedOption, string newValue)
         {
 
             Serde serde = new Serde();
             Data data = serde.deserialize("data.json");
-            data.Add(selected, newValue);
+            data.Add(selectedOption, newValue);
             serde.serialize(data, "data.json");
 
-            TempData["selected"] = selected;
+            TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
         }
     }

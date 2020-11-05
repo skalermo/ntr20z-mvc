@@ -16,23 +16,28 @@
 
 <h2>Activities panel</h2>
 
-@using (Html.BeginForm("ChooseOption", "Activities", FormMethod.Post))
-{
-    <div class="form-group">
-        @Html.DropDownListFor(model => model.selected,
-    new SelectList(Enum.GetValues(typeof(ActivityOption))),
-    new { onchange="this.form.submit();" })
+<div class="row ml-1">
+    <div class="col-md-1.5 form-group">
+        @using (Html.BeginForm("SelectOption", "Activities", FormMethod.Post))
+        {
+            @Html.DropDownListFor(model => model.selectedOption,
+        new SelectList(Enum.GetValues(typeof(ActivityOption))),
+        new { onchange="this.form.submit();" })
+        }
+
+        </div>
+
+        <div class="col-md-1 form-group">
+            @using (Html.BeginForm("SelectOptionValue", "Activities", FormMethod.Post))
+        {
+            @* <label>@Model.selected</label> *@
+            @Html.DropDownListFor(model => model.selectedValue,
+        new SelectList(Model.values),
+        new { onchange="this.form.submit();" })
+            <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+        }
     </div>
-}
-@*
-    @using (Html.BeginForm("ChooseOption", "Activities", FormMethod.Post))
-    {
-    <div class="form-group">
-    @Html.DropDownListFor(m => m.selected,
-    Model.values,
-    new { onchange="this.form.submit();" })
-    </div>
-    } *@
+</div>
 
 
 <div class="wrapper">

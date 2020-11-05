@@ -11,7 +11,7 @@
 @using (Html.BeginForm("SelectOption", "Manage", FormMethod.Post))
 {
     <div class="form-group">
-        @Html.DropDownListFor(model => model.selected,
+        @Html.DropDownListFor(model => model.selectedOption,
     new SelectList(Enum.GetValues(typeof(ManageOption))),
     new { onchange="this.form.submit();" })
     </div>
@@ -22,19 +22,19 @@
     <div class="form-group">
         @Html.Label("Add new ")
         @Html.TextBox("newValue")
-        <input type="hidden" name="selected" value=@Model.selected />
+        <input type="hidden" name="selectedOption" value=@Model.selectedOption />
         <button type="submit" class="btn btn-link">Submit</button>
     </div>
 }
 
 @using (Html.BeginForm("Delete", "Manage", FormMethod.Post))
 {
-    <input type="hidden" name="selected" value=@Model.selected />
+    <input type="hidden" name="selectedOption" value=@Model.selectedOption />
     <div>
         <table class="table table-hover">
             <tr>
                 <th>
-                    @Model.selected
+                    @Model.selectedOption
                 </th>
                 <th>
                     Action
@@ -48,7 +48,6 @@
                     </td>
                     <td>
                         <input type="hidden" name="valueToDelete" value=@item />
-                        @* @Html.ActionLink("Delete", "Delete", new {selected=Model.selected, valueToDelete=item}) *@
                         <button type="submit" class="btn btn-link">Delete</button>
                     </td>
                 </tr>
