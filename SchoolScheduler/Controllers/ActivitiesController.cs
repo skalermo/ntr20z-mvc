@@ -173,6 +173,9 @@ namespace SchoolScheduler.Controllers
                     case OptionEnum.Groups:
                         value = activity.Group;
                         break;
+                    case OptionEnum.Classes:
+                        value = activity.Class;
+                        break;
                     case OptionEnum.Teachers:
                         value = activity.Teacher;
                         break;
