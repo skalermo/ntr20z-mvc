@@ -51,7 +51,7 @@
     @{
         int i = 0;
     }
-    @foreach (var label in ViewBag.activityLabels)
+    @foreach (var tuple in ViewBag.activityLabels)
     {
         if (i % cols == 0)
         {
@@ -61,9 +61,9 @@
         }
 
         <a href="" class="fill-div slot" data-toggle="modal" data-target="#activityModal"
-            data-url='@(Url.Action("ActivityModal", new {Model.selectedOption, Model.selectedValue, slot=i}))'>
+            data-url='@(Url.Action("ActivityModal", new {Model.selectedOption, Model.selectedValue, idx=@tuple.Item2, slot=@i}))'>
 
-            @label
+            @tuple.Item1
         </a>
         i++;
     }
