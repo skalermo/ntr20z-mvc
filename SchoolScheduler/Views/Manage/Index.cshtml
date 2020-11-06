@@ -8,6 +8,14 @@
 
 <h2>Manage panel</h2>
 
+@if (TempData["Alert"] != null)
+{
+    <div class="alert alert-danger">
+        <a href="#" class="close" data-dismiss="alert">×</a>
+        @TempData["Alert"]
+    </div>
+}
+
 @using (Html.BeginForm("SelectOption", "Manage", FormMethod.Post))
 {
     <div class="form-group">
@@ -47,8 +55,8 @@
                         @item
                     </td>
                     <td>
-                        <input type="hidden" name="valueToDelete" value=@item />
-                        <button type="submit" class="btn btn-link">Delete</button>
+                        @* <input type="hidden" name="valueToDelete" value=@item /> *@
+                        <button type="submit" name="valueToDelete" value=@item class="btn btn-link">Delete</button>
                     </td>
                 </tr>
             }
