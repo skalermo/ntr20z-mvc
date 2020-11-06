@@ -1,7 +1,7 @@
 @model Activity
 
 @{
-    string modalTitle = Model.Slot != -1 ? "Edit Activity" : "Add New Activity";
+    string modalTitle = ViewBag.idx != -1 ? "Edit Activity" : "Add New Activity";
 }
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -11,116 +11,142 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <form>
+
+    @using (Html.BeginForm("ModalAction", "Activities", FormMethod.Post))
+    {
             <div class="modal-body">
                 <div class="form-group row">
                     <label for="room" class="col-sm-2 col-form-label">Room</label>
                     <div class="col-sm-10">
 
-                        <select name="Rooms" id="Rooms" @(ViewBag.selectedOption == ActivityOption.Rooms ? "disabled" :
+                        <select name="room" @(ViewBag.selectedOption == ActivityOption.Rooms ? "disabled" :
                                 "")>
-                            @if (Model.Slot == -1 && ViewBag.selectedOption != ActivityOption.Rooms)
+                            @if (ViewBag.idx == -1 && ViewBag.selectedOption != ActivityOption.Rooms)
                             {
-                            <option disabled selected>Select a room</option>
+                                <option disabled selected>Select a room</option>
 
                             }
-                            @foreach (var room in ViewBag.rooms)
+                                @foreach (var room in ViewBag.rooms)
                             {
 
-                                if (room == Model.Room && Model.Slot != -1)
+                                if (ViewBag.idx != -1 && room == Model.Room)
                                 {
-                                    <option value="@room" selected>@room</option>
+                                            <option value="@room" selected>@room</option>
+                                }
+                                else if (ViewBag.idx == -1 && ViewBag.selectedOption == ActivityOption.Rooms){
+                                            <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
                                 }
                                 else {
-                                    <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
+                                            <option value="@room">@room</option>
                                 }
                             }
 
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="group" class="col-sm-2 col-form-label">Group</label>
-                            <div class="col-sm-10">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="group" class="col-sm-2 col-form-label">Group</label>
+                                    <div class="col-sm-10">
 
-                                <select name="Groups" id="Groups" @(ViewBag.selectedOption == ActivityOption.Groups ? "disabled" : "")>
-                                   @if (Model.Slot == -1 && ViewBag.selectedOption != ActivityOption.Groups)
-                                    {
-                                    <option disabled selected>Select a group</option>
-
-                                    }
-                                    @foreach (var group in ViewBag.groups)
+                                        <select name="group" @(ViewBag.selectedOption == ActivityOption.Groups ? "disabled" : "")>
+                                           @if (ViewBag.idx == -1 && ViewBag.selectedOption != ActivityOption.Groups)
                             {
-                                if (group == Model.Group && Model.Slot != -1)
+                                        <option disabled selected>Select a group</option>
+
+                            }
+                                        @foreach (var group in ViewBag.groups)
+                            {
+                                if (ViewBag.idx != -1 && group == Model.Group)
                                 {
-                                    <option value="@group" selected>@group</option>
+                                            <option value="@group" selected>@group</option>
+                                }
+                                else if (ViewBag.idx == -1 && ViewBag.selectedOption == ActivityOption.Groups){
+                                            <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
                                 }
                                 else {
-                                    <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
+                                            <option value="@group">@group</option>
                                 }
                             }
-                                </select>
+                                        </select>
 
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
-                        <div class="form-group row">
-                            <label for="class" class="col-sm-2 col-form-label">Class</label>
-                            <div class="col-sm-10">
+                                <div class="form-group row">
+                                    <label for="class_" class="col-sm-2 col-form-label">Class</label>
+                                    <div class="col-sm-10">
 
-                                <select name="Classes" id="Classes">
-                                    @if (Model.Slot == -1)
-                                    {
-                                    <option disabled selected>Select a class</option>
-
-                                    }
-                                    @foreach (var class_ in ViewBag.classes)
+                                        <select name="class_">
+                                            @if (ViewBag.idx == -1)
                             {
-                                if (class_ == Model.Class && Model.Slot != -1)
+                                        <option disabled selected>Select a class</option>
+
+                            }
+                                        @foreach (var class_ in ViewBag.classes)
+                            {
+                                if (class_ == Model.Class && ViewBag.idx != -1)
                                 {
-                                    <option value="@class_" selected>@class_</option>
+                                            <option value="@class_" selected>@class_</option>
                                 }
                                 else {
-                                    <option value="@class_">@class_</option>
+                                            <option value="@class_">@class_</option>
                                 }
                             }
-                                </select>
+                                        </select>
 
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
-                        <div class="form-group row">
-                            <label for="teacher" class="col-sm-2 col-form-label">Teacher</label>
-                            <div class="col-sm-10">
+                                <div class="form-group row">
+                                    <label for="teacher" class="col-sm-2 col-form-label">Teacher</label>
+                                    <div class="col-sm-10">
 
 
-                                <select name="Teachers" id="Teachers" @(ViewBag.selectedOption == ActivityOption.Teachers ? "disabled" : "")>
-                                    @if (Model.Slot == -1 && ViewBag.selectedOption != ActivityOption.Teachers)
-                                    {
-                                    <option disabled selected>Select a teacher</option>
-
-                                    }
-                                    @foreach (var teacher in ViewBag.teachers)
+                                        <select name="teacher" @(ViewBag.selectedOption == ActivityOption.Teachers ? "disabled" : "")>
+                                            @if (ViewBag.idx == -1 && ViewBag.selectedOption != ActivityOption.Teachers)
                             {
-                                if (teacher == Model.Teacher && Model.Slot != -1)
+                                        <option disabled selected>Select a teacher</option>
+
+                            }
+                                        @foreach (var teacher in ViewBag.teachers)
+                            {
+                                if (ViewBag.idx != -1 && teacher == Model.Teacher)
                                 {
-                                    <option value="@teacher" selected>@teacher</option>
+                                            <option value="@teacher" selected>@teacher</option>
+                                }
+                                else if (ViewBag.idx == -1 && ViewBag.selectedOption == ActivityOption.Teachers){
+                                            <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
                                 }
                                 else {
-                                    <option value="@ViewBag.selectedValue">@ViewBag.selectedValue</option>
+                                            <option value="@teacher">@teacher</option>
                                 }
                             }
-                                </select>
+                                        </select>
+
+                                    </div>
+                                </div>
 
                             </div>
-                        </div>
 
+                                <input type="hidden" name="selectedOption" value=@ViewBag.selectedOption />
+                                <input type="hidden" name="selectedValue" value=@ViewBag.selectedValue />
+                                <input type="hidden" name="idx" value=@ViewBag.idx />
+                                <input type="hidden" name="slot" value="@Model.Slot" />
+
+                            <div class="modal-footer">
+                                <input type="submit" name="deleteButton" value="Delete" class="btn btn-secondary" @(ViewBag.idx == -1 ? "disabled" : "")>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <input type="submit" name="saveButton" value="Save" class="btn btn-primary">
+                            </div>
+    }
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @(Model.Slot == -1 ? "disabled" : "")>Delete</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+
+
+<script type="text/javascript">
+    $('form').submit(function(e) {
+        $(':disabled').each(function(e) {
+            $(this).removeAttr('disabled');
+        })
+    });
+</script>
