@@ -12,6 +12,10 @@ $('#activityModal').on('show.bs.modal', function (event) {
 
         $('#activityModal').modal('show');
     });
-
-
 })
+
+window.setTimeout(function () {
+    $(".alert-danger").fadeTo(500, 0).slideUp(500, function () {
+        $(this).remove();
+    });
+}, 5000);
