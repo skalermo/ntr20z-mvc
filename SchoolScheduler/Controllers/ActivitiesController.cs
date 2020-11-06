@@ -73,23 +73,24 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(ActivityOption selectedOption, string selectedValue, int slot)
+        public ActionResult ActivityModal(ActivityOption selectedOption, string selectedValue, int idx, int slot)
         {
             Data data = new Serde().deserialize("data.json");
-            var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
-            var filtered = filteredActivities.Where(a => a.Slot == slot);
+
             Activity activity;
-            if (filtered.Any())
+            if (idx >= 0)
             {
-                activity = filtered.ElementAt(0);
+                activity = data.Activities[idx];
             }
             else
             {
                 activity = new Activity();
             }
+            activity.Slot = slot;
 
             ViewBag.selectedOption = selectedOption;
             ViewBag.selectedValue = selectedValue;
+            ViewBag.idx = idx;
             ViewBag.rooms = data.Rooms;
             ViewBag.classes = data.Classes;
             ViewBag.groups = data.Groups;
@@ -98,13 +99,68 @@ namespace SchoolScheduler.Controllers
             return PartialView(activity);
         }
 
-        [HttpGet]
-        private List<Activity> getFilteredActivities(ActivityOption selectedOption, string selectedValue)
+        [HttpPost]
+        public ActionResult ModalAction(ActivityOption selectedOption, string selectedValue,
+        int idx, string room, string group, string class_, string teacher, int slot)
+        {
+            if (Request.Form.ContainsKey("deleteButton"))
+            {
+                DeleteActivity(idx);
+            }
+            else if (Request.Form.ContainsKey("saveButton"))
+            {
+                var activity = new Activity()
+                {
+                    Room = room,
+                    Group = group,
+                    Class = class_,
+                    Teacher = teacher,
+                    Slot = slot
+                };
+
+                if (idx == -1)
+                {
+                    AddNewActivity(activity);
+                }
+                else
+                {
+                    EditActivity(activity, idx);
+                }
+            }
+
+            TempData["selectedOption"] = selectedOption;
+            TempData["selectedValue"] = selectedValue;
+            return RedirectToAction("Index");
+        }
+
+        private void DeleteActivity(int idx)
+        {
+            var data = new Serde().deserialize("data.json");
+            data.Activities.RemoveAt(idx);
+            new Serde().serialize(data, "data.json");
+        }
+
+        private void AddNewActivity(Activity activity)
+        {
+            var data = new Serde().deserialize("data.json");
+            data.Activities.Add(activity);
+            new Serde().serialize(data, "data.json");
+        }
+
+        private void EditActivity(Activity activity, int idx)
+        {
+            var data = new Serde().deserialize("data.json");
+            data.Activities[idx] = activity;
+            new Serde().serialize(data, "data.json");
+        }
+
+        private List<Tuple<Activity, int>> getFilteredActivities(ActivityOption selectedOption, string selectedValue)
         {
 
             Data data = new Serde().deserialize("data.json");
-            var filteredActivities = new List<Activity>();
+            var filteredActivities = new List<Tuple<Activity, int>>();
 
+            int i = 0;
             foreach (var activity in data.Activities)
             {
                 string value;
@@ -123,22 +179,23 @@ namespace SchoolScheduler.Controllers
                 }
                 if (value == selectedValue)
                 {
-                    filteredActivities.Add(activity);
+                    filteredActivities.Add(Tuple.Create(activity, i));
                 }
+                i++;
             }
             return filteredActivities;
         }
 
-        private List<string> GenerateLabels(ActivityOption selectedOption, string selectedValue)
+        private List<Tuple<string, int>> GenerateLabels(ActivityOption selectedOption, string selectedValue)
         {
             var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
 
             const int rows = 9;
             const int cols = 5;
-            var labels = new List<string>(new string[rows * cols]);
+            var labels = new List<Tuple<string, int>>();
             for (int i = 0; i < rows * cols; i++)
             {
-                labels[i] = "";
+                labels.Add(Tuple.Create("", -1));
             }
 
             foreach (var activity in filteredActivities)
@@ -148,16 +205,16 @@ namespace SchoolScheduler.Controllers
                 {
                     case ActivityOption.Rooms:
                     default:
-                        strToShow = activity.Group;
+                        strToShow = activity.Item1.Group;
                         break;
                     case ActivityOption.Groups:
-                        strToShow = activity.Room + " " + activity.Class;
+                        strToShow = activity.Item1.Room + " " + activity.Item1.Class;
                         break;
                     case ActivityOption.Teachers:
-                        strToShow = activity.Room + " " + activity.Class + " " + activity.Group;
+                        strToShow = activity.Item1.Room + " " + activity.Item1.Class + " " + activity.Item1.Group;
                         break;
                 }
-                labels[activity.Slot] = strToShow;
+                labels[activity.Item1.Slot] = Tuple.Create(strToShow, activity.Item2);
             }
             return labels;
         }
