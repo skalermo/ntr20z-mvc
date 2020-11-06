@@ -47,55 +47,51 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult Delete(OptionEnum selectedOption, string valueToDelete)
+        public ActionResult Delete(OptionEnum selectedOption)
         {
-            foreach (var key in Request.Form)
-            {
-
-                Console.WriteLine(key);
-            }
+            string valueToDelete = Request.Form["valueToDelete"];
             Serde serde = new Serde();
             Data data = serde.deserialize("data.json");
 
-            // var filteredActivities = ActivitiesController.getFilteredActivities(selectedOption, valueToDelete);
-            // foreach (var activity in filteredActivities)
-            // {
-            //     switch (selectedOption)
-            //     {
-            //         case OptionEnum.Rooms:
-            //             if (activity.Item1.Room == valueToDelete)
-            //             {
-            //                 ViewBag.Alert = "Used in an activity.";
-            //                 TempData["selected"] = selectedOption;
-            //                 return RedirectToAction("Index");
-            //             }
-            //             break;
-            //         case OptionEnum.Groups:
-            //             if (activity.Item1.Group == valueToDelete)
-            //             {
-            //                 ViewBag.Alert = "Used in an activity.";
-            //                 TempData["selected"] = selectedOption;
-            //                 return RedirectToAction("Index");
-            //             }
-            //             break;
-            //         case OptionEnum.Classes:
-            //             if (activity.Item1.Class == valueToDelete)
-            //             {
-            //                 ViewBag.Alert = "Used in an activity.";
-            //                 TempData["selected"] = selectedOption;
-            //                 return RedirectToAction("Index");
-            //             }
-            //             break;
-            //         case OptionEnum.Teachers:
-            //             if (activity.Item1.Teacher == valueToDelete)
-            //             {
-            //                 ViewBag.Alert = "Used in an activity.";
-            //                 TempData["selected"] = selectedOption;
-            //                 return RedirectToAction("Index");
-            //             }
-            //             break;
-            //     }
-            // }
+            var filteredActivities = ActivitiesController.getFilteredActivities(selectedOption, valueToDelete);
+            foreach (var activity in filteredActivities)
+            {
+                switch (selectedOption)
+                {
+                    case OptionEnum.Rooms:
+                        if (activity.Item1.Room == valueToDelete)
+                        {
+                            TempData["Alert"] = "Used in an Activity.";
+                            TempData["selected"] = selectedOption;
+                            return RedirectToAction("Index");
+                        }
+                        break;
+                    case OptionEnum.Groups:
+                        if (activity.Item1.Group == valueToDelete)
+                        {
+                            TempData["Alert"] = "Used in an Activity.";
+                            TempData["selected"] = selectedOption;
+                            return RedirectToAction("Index");
+                        }
+                        break;
+                    case OptionEnum.Classes:
+                        if (activity.Item1.Class == valueToDelete)
+                        {
+                            TempData["Alert"] = "Used in an Activity.";
+                            TempData["selected"] = selectedOption;
+                            return RedirectToAction("Index");
+                        }
+                        break;
+                    case OptionEnum.Teachers:
+                        if (activity.Item1.Teacher == valueToDelete)
+                        {
+                            TempData["Alert"] = "Used in an Activity.";
+                            TempData["selected"] = selectedOption;
+                            return RedirectToAction("Index");
+                        }
+                        break;
+                }
+            }
 
             data.Delete(selectedOption, valueToDelete);
             serde.serialize(data, "data.json");
