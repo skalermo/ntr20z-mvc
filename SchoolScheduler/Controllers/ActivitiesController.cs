@@ -15,24 +15,24 @@ namespace SchoolScheduler.Controllers
         // GET: Activities
         public ActionResult Index()
         {
-            ActivityOption selectedOption = ActivityOption.Rooms;
+            OptionEnum selectedOption = OptionEnum.Rooms;
             if (TempData["selectedOption"] != null)
             {
-                selectedOption = (ActivityOption)TempData["selectedOption"];
+                selectedOption = (OptionEnum)TempData["selectedOption"];
             }
 
-            var optionList = new ActivityOptionList();
+            var optionList = new OptionList();
             Data data = new Serde().deserialize("data.json");
 
             switch (selectedOption)
             {
-                case ActivityOption.Rooms:
+                case OptionEnum.Rooms:
                     optionList.values = data.Rooms;
                     break;
-                case ActivityOption.Groups:
+                case OptionEnum.Groups:
                     optionList.values = data.Groups;
                     break;
-                case ActivityOption.Teachers:
+                case OptionEnum.Teachers:
                     optionList.values = data.Teachers;
                     break;
             }
@@ -58,14 +58,14 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult SelectOption(ActivityOption selectedOption)
+        public ActionResult SelectOption(OptionEnum selectedOption)
         {
             TempData["selectedOption"] = selectedOption;
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public ActionResult SelectOptionValue(ActivityOption selectedOption, string selectedValue)
+        public ActionResult SelectOptionValue(OptionEnum selectedOption, string selectedValue)
         {
             TempData["selectedOption"] = selectedOption;
             TempData["selectedValue"] = selectedValue;
@@ -73,7 +73,7 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(ActivityOption selectedOption, string selectedValue, int idx, int slot)
+        public ActionResult ActivityModal(OptionEnum selectedOption, string selectedValue, int idx, int slot)
         {
             Data data = new Serde().deserialize("data.json");
 
@@ -100,7 +100,7 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult ModalAction(ActivityOption selectedOption, string selectedValue,
+        public ActionResult ModalAction(OptionEnum selectedOption, string selectedValue,
         int idx, string room, string group, string class_, string teacher, int slot)
         {
             if (Request.Form.ContainsKey("deleteButton"))
@@ -154,7 +154,7 @@ namespace SchoolScheduler.Controllers
             new Serde().serialize(data, "data.json");
         }
 
-        private List<Tuple<Activity, int>> getFilteredActivities(ActivityOption selectedOption, string selectedValue)
+        public static List<Tuple<Activity, int>> getFilteredActivities(OptionEnum selectedOption, string selectedValue)
         {
 
             Data data = new Serde().deserialize("data.json");
@@ -166,14 +166,14 @@ namespace SchoolScheduler.Controllers
                 string value;
                 switch (selectedOption)
                 {
-                    case ActivityOption.Rooms:
+                    case OptionEnum.Rooms:
                     default:
                         value = activity.Room;
                         break;
-                    case ActivityOption.Groups:
+                    case OptionEnum.Groups:
                         value = activity.Group;
                         break;
-                    case ActivityOption.Teachers:
+                    case OptionEnum.Teachers:
                         value = activity.Teacher;
                         break;
                 }
@@ -186,7 +186,7 @@ namespace SchoolScheduler.Controllers
             return filteredActivities;
         }
 
-        private List<Tuple<string, int>> GenerateLabels(ActivityOption selectedOption, string selectedValue)
+        private List<Tuple<string, int>> GenerateLabels(OptionEnum selectedOption, string selectedValue)
         {
             var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
 
@@ -203,14 +203,14 @@ namespace SchoolScheduler.Controllers
                 string strToShow;
                 switch (selectedOption)
                 {
-                    case ActivityOption.Rooms:
+                    case OptionEnum.Rooms:
                     default:
                         strToShow = activity.Item1.Group;
                         break;
-                    case ActivityOption.Groups:
+                    case OptionEnum.Groups:
                         strToShow = activity.Item1.Room + " " + activity.Item1.Class;
                         break;
-                    case ActivityOption.Teachers:
+                    case OptionEnum.Teachers:
                         strToShow = activity.Item1.Room + " " + activity.Item1.Class + " " + activity.Item1.Group;
                         break;
                 }

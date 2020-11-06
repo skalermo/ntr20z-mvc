@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace SchoolScheduler.Models
 {
-    public enum ManageOption
+    public enum OptionEnum
     {
         Rooms,
         Groups,
@@ -13,29 +13,13 @@ namespace SchoolScheduler.Models
         Teachers
     }
 
-    public class ManageOptionList
+    public class OptionList
     {
-        public ManageOptionList()
+        public OptionList()
         {
-            selectedOption = ManageOption.Rooms;
+            selectedOption = OptionEnum.Rooms;
         }
-        public ManageOption selectedOption { get; set; }
-        public List<string> values { get; set; }
-    }
-    public enum ActivityOption
-    {
-        Rooms,
-        Groups,
-        Teachers
-    }
-
-    public class ActivityOptionList
-    {
-        public ActivityOptionList()
-        {
-            selectedOption = ActivityOption.Rooms;
-        }
-        public ActivityOption selectedOption { get; set; }
+        public OptionEnum selectedOption { get; set; }
         public string selectedValue { get; set; }
         public List<string> values { get; set; }
     }

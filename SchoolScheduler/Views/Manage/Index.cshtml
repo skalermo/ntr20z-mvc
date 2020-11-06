@@ -1,5 +1,5 @@
 @using System.Collections.Generic;
-@model ManageOptionList;
+@model OptionList;
 @{
     ViewBag.Title = "Manage panel";
     ViewData["Title"] = "Manage panel";
@@ -12,7 +12,7 @@
 {
     <div class="form-group">
         @Html.DropDownListFor(model => model.selectedOption,
-    new SelectList(Enum.GetValues(typeof(ManageOption))),
+    new SelectList(Enum.GetValues(typeof(OptionEnum))),
     new { onchange="this.form.submit();" })
     </div>
 }
