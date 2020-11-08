@@ -91,10 +91,30 @@ namespace SchoolScheduler.Controllers
             ViewBag.selectedOption = selectedOption;
             ViewBag.selectedValue = selectedValue;
             ViewBag.idx = idx;
-            ViewBag.rooms = data.Rooms;
+
             ViewBag.classes = data.Classes;
+
+            ViewBag.rooms = data.Rooms;
             ViewBag.groups = data.Groups;
             ViewBag.teachers = data.Teachers;
+
+            var activitiesWithSameSlot = data.Activities.Where((v, i) => i != idx).ToList().FindAll(a => a.Slot == slot);
+            var roomsToExclude = activitiesWithSameSlot.Select(a => a.Room).ToHashSet();
+            var groupsToExclude = activitiesWithSameSlot.Select(a => a.Group).ToHashSet();
+            var teachersToExclude = activitiesWithSameSlot.Select(a => a.Teacher).ToHashSet();
+
+            if (selectedOption != OptionEnum.Rooms)
+            {
+                ViewBag.rooms = data.Rooms.Except(roomsToExclude);
+            }
+            if (selectedOption != OptionEnum.Groups)
+            {
+                ViewBag.groups = data.Groups.Except(groupsToExclude);
+            }
+            if (selectedOption != OptionEnum.Teachers)
+            {
+                ViewBag.teachers = data.Teachers.Except(teachersToExclude);
+            }
 
             return PartialView(activity);
         }
