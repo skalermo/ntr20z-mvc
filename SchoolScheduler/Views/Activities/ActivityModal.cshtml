@@ -23,7 +23,7 @@
                                 "")>
                             @if (ViewBag.idx == -1 && ViewBag.selectedOption != OptionEnum.Rooms)
                             {
-                                <option disabled selected>Select a room</option>
+                                <option value="" disabled selected>Select a room</option>
 
                             }
                                 @foreach (var room in ViewBag.rooms)
@@ -51,7 +51,7 @@
                                         <select name="group" @(ViewBag.selectedOption == OptionEnum.Groups ? "disabled" : "")>
                                            @if (ViewBag.idx == -1 && ViewBag.selectedOption != OptionEnum.Groups)
                             {
-                                        <option disabled selected>Select a group</option>
+                                        <option value="" disabled selected>Select a group</option>
 
                             }
                                         @foreach (var group in ViewBag.groups)
@@ -79,7 +79,7 @@
                                         <select name="class_">
                                             @if (ViewBag.idx == -1)
                             {
-                                        <option disabled selected>Select a class</option>
+                                        <option value="" disabled selected>Select a class</option>
 
                             }
                                         @foreach (var class_ in ViewBag.classes)
@@ -105,7 +105,7 @@
                                         <select name="teacher" @(ViewBag.selectedOption == OptionEnum.Teachers ? "disabled" : "")>
                                             @if (ViewBag.idx == -1 && ViewBag.selectedOption != OptionEnum.Teachers)
                             {
-                                        <option disabled selected>Select a teacher</option>
+                                        <option value="" disabled selected>Select a teacher</option>
 
                             }
                                         @foreach (var teacher in ViewBag.teachers)
@@ -136,7 +136,7 @@
                             <div class="modal-footer">
                                 <input type="submit" name="deleteButton" value="Delete" class="btn btn-secondary" @(ViewBag.idx == -1 ? "disabled" : "")>
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <input type="submit" name="saveButton" value="Save" class="btn btn-primary">
+                                <input type="submit" name="saveButton" id="saveButton" value="Save" class="btn btn-primary" disabled="disabled">
                             </div>
     }
                     </div>
@@ -149,4 +149,22 @@
             $(this).removeAttr('disabled');
         })
     });
+
+    (function() {
+        $('select').change(function() {
+
+            var empty = false;
+            $('select').each(function() {
+                if ($(this).val().startsWith('Select')) {
+                    empty = true;
+                }
+            });
+
+            if (empty) {
+                $('#saveButton').attr('disabled', 'disabled');
+            } else {
+                $('#saveButton').removeAttr('disabled');
+            }
+        });
+    })()
 </script>
