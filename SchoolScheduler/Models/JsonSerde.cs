@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace SchoolScheduler.Models
 {
-    public class Serde
+    public class JsonSerde
     {
-        public Data deserialize(string jsonDatafile)
+        public static Data GetData(string jsonDatafile = "data.json")
         {
             string jsonString = System.IO.File.ReadAllText(jsonDatafile);
             Data data = JsonSerializer.Deserialize<Data>(jsonString);
@@ -14,7 +14,7 @@ namespace SchoolScheduler.Models
             return data;
         }
 
-        public void serialize(Data data, string jsonDatafile)
+        public static void SaveChanges(Data data, string jsonDatafile = "data.json")
         {
             var options = new JsonSerializerOptions
             {

@@ -17,7 +17,7 @@ namespace SchoolScheduler.Controllers
             }
 
             OptionList optionList = new OptionList();
-            Data data = new Serde().deserialize("data.json");
+            Data data = JsonSerde.GetData();
 
             switch (selectedOption)
             {
@@ -50,8 +50,7 @@ namespace SchoolScheduler.Controllers
         public ActionResult Delete(OptionEnum selectedOption)
         {
             string valueToDelete = Request.Form["valueToDelete"];
-            Serde serde = new Serde();
-            Data data = serde.deserialize("data.json");
+            Data data = JsonSerde.GetData();
 
             var filteredActivities = ActivitiesController.getFilteredActivities(selectedOption, valueToDelete);
             foreach (var activity in filteredActivities)
@@ -94,7 +93,7 @@ namespace SchoolScheduler.Controllers
             }
 
             data.Delete(selectedOption, valueToDelete);
-            serde.serialize(data, "data.json");
+            JsonSerde.SaveChanges(data);
 
             TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
@@ -105,10 +104,9 @@ namespace SchoolScheduler.Controllers
         public ActionResult Add(OptionEnum selectedOption, string newValue)
         {
 
-            Serde serde = new Serde();
-            Data data = serde.deserialize("data.json");
+            Data data = JsonSerde.GetData();
             data.Add(selectedOption, newValue);
-            serde.serialize(data, "data.json");
+            JsonSerde.SaveChanges(data);
 
             TempData["selected"] = selectedOption;
             return RedirectToAction("Index");

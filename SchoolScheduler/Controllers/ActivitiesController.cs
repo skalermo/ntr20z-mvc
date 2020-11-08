@@ -22,7 +22,7 @@ namespace SchoolScheduler.Controllers
             }
 
             var optionList = new OptionList();
-            Data data = new Serde().deserialize("data.json");
+            Data data = JsonSerde.GetData();
 
             switch (selectedOption)
             {
@@ -75,7 +75,7 @@ namespace SchoolScheduler.Controllers
         [HttpGet]
         public ActionResult ActivityModal(OptionEnum selectedOption, string selectedValue, int idx, int slot)
         {
-            Data data = new Serde().deserialize("data.json");
+            Data data = JsonSerde.GetData();
 
             Activity activity;
             if (idx >= 0)
@@ -135,29 +135,28 @@ namespace SchoolScheduler.Controllers
 
         private void DeleteActivity(int idx)
         {
-            var data = new Serde().deserialize("data.json");
+            var data = JsonSerde.GetData();
             data.Activities.RemoveAt(idx);
-            new Serde().serialize(data, "data.json");
+            JsonSerde.SaveChanges(data);
         }
 
         private void AddNewActivity(Activity activity)
         {
-            var data = new Serde().deserialize("data.json");
+            var data = JsonSerde.GetData();
             data.Activities.Add(activity);
-            new Serde().serialize(data, "data.json");
+            JsonSerde.SaveChanges(data);
         }
 
         private void EditActivity(Activity activity, int idx)
         {
-            var data = new Serde().deserialize("data.json");
+            var data = JsonSerde.GetData();
             data.Activities[idx] = activity;
-            new Serde().serialize(data, "data.json");
+            JsonSerde.SaveChanges(data);
         }
 
         public static List<Tuple<Activity, int>> getFilteredActivities(OptionEnum selectedOption, string selectedValue)
         {
-
-            Data data = new Serde().deserialize("data.json");
+            var data = JsonSerde.GetData();
             var filteredActivities = new List<Tuple<Activity, int>>();
 
             int i = 0;
