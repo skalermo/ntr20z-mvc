@@ -1,0 +1,66 @@
+@using System.Collections.Generic;
+@model OptionList;
+@{
+    ViewBag.Title = "Manage panel";
+    ViewData["Title"] = "Manage panel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Manage panel</h2>
+
+@if (TempData["Alert"] != null)
+{
+    <div class="alert alert-danger">
+        <a href="#" class="close" data-dismiss="alert">×</a>
+        @TempData["Alert"]
+    </div>
+}
+
+@using (Html.BeginForm("SelectOption", "Manage", FormMethod.Post))
+{
+    <div class="form-group">
+        @Html.DropDownListFor(model => model.selectedOption,
+    new SelectList(Enum.GetValues(typeof(OptionEnum))),
+    new { onchange="this.form.submit();" })
+    </div>
+}
+
+@using (Html.BeginForm("Add", "Manage", FormMethod.Post))
+{
+    <div class="form-group">
+        @Html.Label("Add new ")
+        @Html.TextBox("newValue")
+        <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+        <button type="submit" class="btn btn-link">Submit</button>
+    </div>
+}
+
+@using (Html.BeginForm("Delete", "Manage", FormMethod.Post))
+{
+    <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+    <div>
+        <table class="table table-hover">
+            <tr>
+                <th>
+                    @Model.selectedOption
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+            @foreach (var item in Model.values)
+            {
+                <tr>
+                    <td>
+                        @item
+                    </td>
+                    <td>
+                        @* <input type="hidden" name="valueToDelete" value=@item /> *@
+                        <button type="submit" name="valueToDelete" value="@item" class="btn btn-link">Delete</button>
+                    </td>
+                </tr>
+            }
+
+        </table>
+    </div>
+}
