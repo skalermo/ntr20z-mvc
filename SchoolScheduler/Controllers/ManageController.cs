@@ -53,43 +53,11 @@ namespace SchoolScheduler.Controllers
             Data data = JsonSerde.GetData();
 
             var filteredActivities = ActivitiesController.getFilteredActivities(selectedOption, valueToDelete);
-            foreach (var activity in filteredActivities)
+            if (filteredActivities.Count > 0)
             {
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                        if (activity.Item1.Room == valueToDelete)
-                        {
-                            TempData["Alert"] = "Used in an Activity.";
-                            TempData["selected"] = selectedOption;
-                            return RedirectToAction("Index");
-                        }
-                        break;
-                    case OptionEnum.Groups:
-                        if (activity.Item1.Group == valueToDelete)
-                        {
-                            TempData["Alert"] = "Used in an Activity.";
-                            TempData["selected"] = selectedOption;
-                            return RedirectToAction("Index");
-                        }
-                        break;
-                    case OptionEnum.Classes:
-                        if (activity.Item1.Class == valueToDelete)
-                        {
-                            TempData["Alert"] = "Used in an Activity.";
-                            TempData["selected"] = selectedOption;
-                            return RedirectToAction("Index");
-                        }
-                        break;
-                    case OptionEnum.Teachers:
-                        if (activity.Item1.Teacher == valueToDelete)
-                        {
-                            TempData["Alert"] = "Used in an Activity.";
-                            TempData["selected"] = selectedOption;
-                            return RedirectToAction("Index");
-                        }
-                        break;
-                }
+                TempData["Alert"] = "Used in an Activity.";
+                TempData["selected"] = selectedOption;
+                return RedirectToAction("Index");
             }
 
             data.Delete(selectedOption, valueToDelete);
@@ -103,8 +71,42 @@ namespace SchoolScheduler.Controllers
         [HttpPost]
         public ActionResult Add(OptionEnum selectedOption, string newValue)
         {
-
             Data data = JsonSerde.GetData();
+            switch (selectedOption)
+            {
+                case OptionEnum.Rooms:
+                    if (data.Rooms.Contains(newValue))
+                    {
+                        TempData["Alert"] = "Value already exists";
+                        TempData["selected"] = selectedOption;
+                        return RedirectToAction("Index");
+                    }
+                    break;
+                case OptionEnum.Groups:
+                    if (data.Groups.Contains(newValue))
+                    {
+                        TempData["Alert"] = "Value already exists";
+                        TempData["selected"] = selectedOption;
+                        return RedirectToAction("Index");
+                    }
+                    break;
+                case OptionEnum.Classes:
+                    if (data.Classes.Contains(newValue))
+                    {
+                        TempData["Alert"] = "Value already exists";
+                        TempData["selected"] = selectedOption;
+                        return RedirectToAction("Index");
+                    }
+                    break;
+                case OptionEnum.Teachers:
+                    if (data.Teachers.Contains(newValue))
+                    {
+                        TempData["Alert"] = "Value already exists";
+                        TempData["selected"] = selectedOption;
+                        return RedirectToAction("Index");
+                    }
+                    break;
+            }
             data.Add(selectedOption, newValue);
             JsonSerde.SaveChanges(data);
 
