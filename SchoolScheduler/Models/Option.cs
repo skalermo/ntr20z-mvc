@@ -8,8 +8,8 @@ namespace SchoolScheduler.Models
     public enum OptionEnum
     {
         Rooms,
-        Groups,
-        Classes,
+        ClassGroups,
+        Subjects,
         Teachers
     }
 
@@ -20,7 +20,7 @@ namespace SchoolScheduler.Models
             selectedOption = OptionEnum.Rooms;
         }
         public OptionEnum selectedOption { get; set; }
-        public string selectedValue { get; set; }
-        public List<string> values { get; set; }
+        public Entity selectedEntity { get; set; }
+        public List<Entity> entities { get; set; }
     }
 }
