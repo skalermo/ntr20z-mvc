@@ -1,5 +1,5 @@
 @using System.Collections.Generic;
-@model OptionList;
+@model Entity;
 @{
     ViewBag.Title = "Manage panel";
     ViewData["Title"] = "Manage panel";
@@ -19,8 +19,8 @@
 @using (Html.BeginForm("SelectOption", "Manage", FormMethod.Post))
 {
     <div class="form-group">
-        @Html.DropDownListFor(model => model.selectedOption,
-    new SelectList(Enum.GetValues(typeof(OptionEnum))),
+        @Html.DropDownList("selectedOption",
+    new SelectList(Enum.GetValues(typeof(OptionEnum)), ViewBag.optionList.selectedOption),
     new { onchange="this.form.submit();" })
     </div>
 }
@@ -29,34 +29,34 @@
 {
     <div class="form-group">
         @Html.Label("Add new ")
-        @Html.TextBox("newValue")
-        <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+        @Html.TextBoxFor(model => model.Name)
+        <input type="hidden" name="selectedOption" value=@ViewBag.optionList.selectedOption />
         <button type="submit" class="btn btn-link">Submit</button>
     </div>
 }
 
 @using (Html.BeginForm("Delete", "Manage", FormMethod.Post))
 {
-    <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+    <input type="hidden" name="selectedOption" value=@ViewBag.optionList.selectedOption />
     <div>
         <table class="table table-hover">
             <tr>
                 <th>
-                    @Model.selectedOption
+                    @ViewBag.optionList.selectedOption
                 </th>
                 <th>
                     Action
                 </th>
             </tr>
-            @foreach (var item in Model.values)
+            @foreach (var item in ViewBag.optionList.entities)
             {
                 <tr>
                     <td>
-                        @item
+                        @item.Name
                     </td>
                     <td>
                         @* <input type="hidden" name="valueToDelete" value=@item /> *@
-                        <button type="submit" name="valueToDelete" value="@item" class="btn btn-link">Delete</button>
+                        <button type="submit" name="id" value="@item.Id" class="btn btn-link">Delete</button>
                     </td>
                 </tr>
             }
