@@ -2,10 +2,14 @@ using System.Collections.Generic;
 
 namespace SchoolScheduler.Models
 {
-    public class Teacher
+    public class Teacher : Entity
     {
-        public int TeacherId { get; set; }
-        public string Name { get; set; }
-        public virtual List<Activity> Activities { get; set; }
+        public Teacher() { }
+        public Teacher(Entity entity)
+        {
+            this.Id = entity.Id;
+            this.Name = entity.Name;
+            this.Activities = entity.Activities;
+        }
     }
 }
