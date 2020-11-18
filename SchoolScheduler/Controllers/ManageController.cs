@@ -1,10 +1,8 @@
-using System.Security.Claims;
 using System.Linq;
-using System.Net;
 using System;
 using SchoolScheduler.Models;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace SchoolScheduler.Controllers
 {
@@ -57,13 +55,19 @@ namespace SchoolScheduler.Controllers
         public ActionResult Delete(OptionEnum selectedOption)
         {
             int id = Convert.ToInt32(Request.Form["id"]);
+
             using (var context = new SchoolContext())
             {
                 Entity entityToDelete;
+
                 switch (selectedOption)
                 {
                     case OptionEnum.Rooms:
-                        entityToDelete = context.Rooms.Find(id);
+                        entityToDelete = context.Rooms
+                            .Include(r => r.Activities)
+                            .Where(r => r.Id == id)
+                            .Single();
+
                         if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -71,7 +75,10 @@ namespace SchoolScheduler.Controllers
 
                         break;
                     case OptionEnum.ClassGroups:
-                        entityToDelete = context.ClassGroups.Find(id);
+                        entityToDelete = context.ClassGroups
+                            .Include(cg => cg.Activities)
+                            .Where(cg => cg.Id == id)
+                            .Single();
                         if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -79,7 +86,11 @@ namespace SchoolScheduler.Controllers
 
                         break;
                     case OptionEnum.Subjects:
-                        entityToDelete = context.Subjects.Find(id);
+                        entityToDelete = context.Subjects
+                            .Include(s => s.Activities)
+                            .Where(s => s.Id == id)
+                            .Single();
+
                         if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -87,7 +98,11 @@ namespace SchoolScheduler.Controllers
 
                         break;
                     case OptionEnum.Teachers:
-                        entityToDelete = context.Teachers.Find(id);
+                        entityToDelete = context.Teachers
+                            .Include(t => t.Activities)
+                            .Where(t => t.Id == id)
+                            .Single();
+
                         if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
