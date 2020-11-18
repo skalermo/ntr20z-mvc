@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SchoolScheduler.Models
 {
     public class Teacher : Entity

@@ -1,7 +1,4 @@
-using System.ComponentModel.Design.Serialization;
-using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace SchoolScheduler.Models
 {
