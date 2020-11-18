@@ -1,4 +1,4 @@
-@model OptionList
+@model Activity
 @{
     ViewBag.Title = "Activities panel";
     ViewData["Title"] = "Activities panel";
@@ -10,7 +10,7 @@
     string[] activitiesTimes = { "8:00-8:45", "8:55-9:40", "9:50-11:35",
         "11:55-12:40", "12:50-13:55", "13:45-14:30",
         "14:40-15:25", "15:35-16:20", "16:30-17:15" };
-    const int rows = 9;
+    @* const int rows = 9; *@
     const int cols = 5;
 }
 
@@ -20,12 +20,12 @@
     @using (Html.BeginForm("SelectOption", "Activities", FormMethod.Post))
     {
         <div class="col-md-1.5 pr-2">
-            @Html.DropDownListFor(model => model.selectedOption,
+            @Html.DropDownList("selectedOption",
         new SelectList(
             Enum
             .GetValues(typeof(OptionEnum))
             .Cast<OptionEnum>()
-            .Where(item => item != OptionEnum.Classes)
+            .Where(item => item != OptionEnum.Subjects), ViewBag.optionList.selectedOption
             ),
         new { onchange="this.form.submit();" })
 
@@ -36,10 +36,11 @@
     {
         <div class="col-md-1.5">
             @* <label>@Model.selected</label> *@
-            @Html.DropDownListFor(model => model.selectedValue,
-        new SelectList(Model.values),
+            @Html.DropDownList("selectedEntity",
+        new SelectList(ViewBag.optionList.entities, nameof(Entity.Id), nameof(Entity.Name),
+            ViewBag.optionList.selectedEntity.Id),
         new { onchange="this.form.submit();" })
-            <input type="hidden" name="selectedOption" value=@Model.selectedOption />
+            <input type="hidden" name="selectedOption" value=@ViewBag.optionList.selectedOption />
         </div>
     }
 </div>
@@ -65,8 +66,8 @@
             <div class="slot index">@(activitiesTimes[i/cols])</div>
         }
 
-        <a href="" class="fill-div slot" data-toggle="modal" data-target="#activityModal"
-            data-url='@(Url.Action("ActivityModal", new {Model.selectedOption, Model.selectedValue, idx=@tuple.Item2, slot=@i}))'>
+        <a href="" class="fill-div slot" data-toggle="modal" data-target="#activityModal" data-url='@(Url.Action("ActivityModal", new {ViewBag.optionList.selectedOption, 
+                                                                                            ViewBag.optionList.selectedEntity, idx=@tuple.Item2, slot=@i+1}))'>
 
             @tuple.Item1
         </a>

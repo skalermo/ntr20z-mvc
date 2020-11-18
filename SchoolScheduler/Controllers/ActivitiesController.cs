@@ -1,12 +1,9 @@
-using System.Runtime.Serialization;
-using System.Security.Cryptography.X509Certificates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using SchoolScheduler.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SchoolScheduler.Controllers
 {
@@ -22,39 +19,48 @@ namespace SchoolScheduler.Controllers
             }
 
             var optionList = new OptionList();
-            Data data = JsonSerde.GetData();
+            optionList.entities = new List<Entity>();
 
-            switch (selectedOption)
+            using (var context = new SchoolContext())
             {
-                case OptionEnum.Rooms:
-                    optionList.values = data.Rooms;
-                    break;
-                case OptionEnum.Groups:
-                    optionList.values = data.Groups;
-                    break;
-                case OptionEnum.Teachers:
-                    optionList.values = data.Teachers;
-                    break;
+                switch (selectedOption)
+                {
+                    case OptionEnum.Rooms:
+                        optionList.entities = context.Rooms.Cast<Entity>().ToList();
+                        break;
+                    case OptionEnum.ClassGroups:
+                        optionList.entities = context.ClassGroups.Cast<Entity>().ToList();
+                        break;
+                    case OptionEnum.Subjects:
+                        optionList.entities = context.Subjects.Cast<Entity>().ToList();
+                        break;
+                    case OptionEnum.Teachers:
+                        optionList.entities = context.Teachers.Cast<Entity>().ToList();
+                        break;
+                }
             }
-            string selectedValue = "";
-            if (optionList.values.Any())
+
+            Entity selectedEntity = new Entity();
+            if (Convert.ToInt32(TempData.Peek("selectedEntityId")) > 0)
             {
-                selectedValue = optionList.values[0];
+                int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
+                selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).Single();
             }
-            if (TempData["selectedValue"] != null)
+            else if (optionList.entities.Any())
             {
-                selectedValue = (string)TempData["selectedValue"];
+                selectedEntity = optionList.entities[0];
             }
+
             optionList.selectedOption = selectedOption;
-            optionList.selectedValue = selectedValue;
+            optionList.selectedEntity = selectedEntity;
 
-
-            var activityLabels = GenerateLabels(selectedOption, selectedValue);
+            var activityLabels = GenerateLabels(selectedOption, selectedEntity.Id);
             // ViewBag.selected = new ActivityFilterOptionList();
 
             ViewBag.activityLabels = activityLabels;
 
-            return View(optionList);
+            ViewBag.optionList = optionList;
+            return View();
         }
 
         [HttpPost]
@@ -65,56 +71,65 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult SelectOptionValue(OptionEnum selectedOption, string selectedValue)
+        public ActionResult SelectOptionValue(OptionEnum selectedOption, int selectedEntity)
         {
             TempData["selectedOption"] = selectedOption;
-            TempData["selectedValue"] = selectedValue;
+            TempData["selectedEntityId"] = selectedEntity;
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(OptionEnum selectedOption, string selectedValue, int idx, int slot)
+        public ActionResult ActivityModal(OptionEnum selectedOption, string selectedEntity, int idx, int slot)
         {
-            Data data = JsonSerde.GetData();
 
             Activity activity;
-            if (idx >= 0)
+            Slot chosenSlot;
+            using (var context = new SchoolContext())
             {
-                activity = data.Activities[idx];
+                chosenSlot = context.Slots.Find(slot);
+            }
+            if (idx > 0)
+            {
+                using (var context = new SchoolContext())
+                {
+                    activity = context.Activities.Find(idx);
+
+                }
             }
             else
             {
                 activity = new Activity();
             }
-            activity.Slot = slot;
+
+            activity.Slot = chosenSlot;
 
             ViewBag.selectedOption = selectedOption;
-            ViewBag.selectedValue = selectedValue;
+            ViewBag.selectedEntity = selectedEntity;
             ViewBag.idx = idx;
 
-            ViewBag.classes = data.Classes;
+            // ViewBag.classes = data.Classes;
 
-            ViewBag.rooms = data.Rooms;
-            ViewBag.groups = data.Groups;
-            ViewBag.teachers = data.Teachers;
+            // ViewBag.rooms = data.Rooms;
+            // ViewBag.groups = data.Groups;
+            // ViewBag.teachers = data.Teachers;
 
-            var activitiesWithSameSlot = data.Activities.Where((v, i) => i != idx).ToList().FindAll(a => a.Slot == slot);
-            var roomsToExclude = activitiesWithSameSlot.Select(a => a.Room).ToHashSet();
-            var groupsToExclude = activitiesWithSameSlot.Select(a => a.Group).ToHashSet();
-            var teachersToExclude = activitiesWithSameSlot.Select(a => a.Teacher).ToHashSet();
+            // var activitiesWithSameSlot = data.Activities.Where((v, i) => i != idx).ToList().FindAll(a => a.Slot == slot);
+            // var roomsToExclude = activitiesWithSameSlot.Select(a => a.Room).ToHashSet();
+            // var groupsToExclude = activitiesWithSameSlot.Select(a => a.Group).ToHashSet();
+            // var teachersToExclude = activitiesWithSameSlot.Select(a => a.Teacher).ToHashSet();
 
-            if (selectedOption != OptionEnum.Rooms)
-            {
-                ViewBag.rooms = data.Rooms.Except(roomsToExclude);
-            }
-            if (selectedOption != OptionEnum.Groups)
-            {
-                ViewBag.groups = data.Groups.Except(groupsToExclude);
-            }
-            if (selectedOption != OptionEnum.Teachers)
-            {
-                ViewBag.teachers = data.Teachers.Except(teachersToExclude);
-            }
+            // if (selectedOption != OptionEnum.Rooms)
+            // {
+            //     ViewBag.rooms = data.Rooms.Except(roomsToExclude);
+            // }
+            // if (selectedOption != OptionEnum.Groups)
+            // {
+            //     ViewBag.groups = data.Groups.Except(groupsToExclude);
+            // }
+            // if (selectedOption != OptionEnum.Teachers)
+            // {
+            //     ViewBag.teachers = data.Teachers.Except(teachersToExclude);
+            // }
 
             return PartialView(activity);
         }
@@ -123,120 +138,181 @@ namespace SchoolScheduler.Controllers
         public ActionResult ModalAction(OptionEnum selectedOption, string selectedValue,
         int idx, string room, string group, string class_, string teacher, int slot)
         {
-            if (Request.Form.ContainsKey("deleteButton"))
-            {
-                DeleteActivity(idx);
-            }
-            else if (Request.Form.ContainsKey("saveButton"))
-            {
-                var activity = new Activity()
-                {
-                    Room = room,
-                    Group = group,
-                    Class = class_,
-                    Teacher = teacher,
-                    Slot = slot
-                };
+            // if (Request.Form.ContainsKey("deleteButton"))
+            // {
+            //     DeleteActivity(idx);
+            // }
+            // else if (Request.Form.ContainsKey("saveButton"))
+            // {
+            //     var activity = new Activity()
+            //     {
+            //         Room = room,
+            //         Group = group,
+            //         Class = class_,
+            //         Teacher = teacher,
+            //         Slot = slot
+            //     };
 
-                if (idx == -1)
-                {
-                    AddNewActivity(activity);
-                }
-                else
-                {
-                    EditActivity(activity, idx);
-                }
-            }
+            //     if (idx == -1)
+            //     {
+            //         AddNewActivity(activity);
+            //     }
+            //     else
+            //     {
+            //         EditActivity(activity, idx);
+            //     }
+            // }
 
             TempData["selectedOption"] = selectedOption;
-            TempData["selectedValue"] = selectedValue;
+            TempData["selectedEntityId"] = selectedValue;
             return RedirectToAction("Index");
         }
 
         private void DeleteActivity(int idx)
         {
-            var data = JsonSerde.GetData();
-            data.Activities.RemoveAt(idx);
-            JsonSerde.SaveChanges(data);
+            // var data = JsonSerde.GetData();
+            // data.Activities.RemoveAt(idx);
+            // JsonSerde.SaveChanges(data);
         }
 
         private void AddNewActivity(Activity activity)
         {
-            var data = JsonSerde.GetData();
-            data.Activities.Add(activity);
-            JsonSerde.SaveChanges(data);
+            // var data = JsonSerde.GetData();
+            // data.Activities.Add(activity);
+            // JsonSerde.SaveChanges(data);
         }
 
         private void EditActivity(Activity activity, int idx)
         {
-            var data = JsonSerde.GetData();
-            data.Activities[idx] = activity;
-            JsonSerde.SaveChanges(data);
+            // var data = JsonSerde.GetData();
+            // data.Activities[idx] = activity;
+            // JsonSerde.SaveChanges(data);
         }
 
-        public static List<Tuple<Activity, int>> getFilteredActivities(OptionEnum selectedOption, string selectedValue)
-        {
-            var data = JsonSerde.GetData();
-            var filteredActivities = new List<Tuple<Activity, int>>();
+        // public static List<Tuple<Activity, int>> getFilteredActivities(OptionEnum selectedOption, string selectedValue)
+        // {
+        //     // var data = JsonSerde.GetData();
+        //     var filteredActivities = new List<Tuple<Activity, int>>();
 
-            int i = 0;
-            foreach (var activity in data.Activities)
+        //     // int i = 0;
+        //     // foreach (var activity in data.Activities)
+        //     // {
+        //     //     string value;
+        //     //     switch (selectedOption)
+        //     //     {
+        //     //         case OptionEnum.Rooms:
+        //     //         default:
+        //     //             value = activity.Room;
+        //     //             break;
+        //     //         case OptionEnum.Groups:
+        //     //             value = activity.Group;
+        //     //             break;
+        //     //         case OptionEnum.Classes:
+        //     //             value = activity.Class;
+        //     //             break;
+        //     //         case OptionEnum.Teachers:
+        //     //             value = activity.Teacher;
+        //     //             break;
+        //     //     }
+        //     //     if (value == selectedValue)
+        //     //     {
+        //     //         filteredActivities.Add(Tuple.Create(activity, i));
+        //     //     }
+        //     //     i++;
+        //     // }
+        //     return filteredActivities;
+        // }
+
+        private List<Tuple<string, int>> GenerateLabels(OptionEnum selectedOption, int entityId)
+        {
+            List<Activity> activities = null;
+            using (var context = new SchoolContext())
             {
-                string value;
                 switch (selectedOption)
                 {
                     case OptionEnum.Rooms:
                     default:
-                        value = activity.Room;
+                        if (context.Rooms.Any())
+                            activities = context.Rooms
+                                .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Room)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Subject)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.ClassGroup)
+                                .Where(ent => ent.Id == entityId)
+                                .Select(ent => ent.Activities)
+                                .Single();
                         break;
-                    case OptionEnum.Groups:
-                        value = activity.Group;
+                    case OptionEnum.ClassGroups:
+                        if (context.ClassGroups.Any())
+                            activities = context.ClassGroups
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Room)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Subject)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.ClassGroup)
+                             .Where(ent => ent.Id == entityId)
+                             .Select(ent => ent.Activities)
+                             .Single();
                         break;
-                    case OptionEnum.Classes:
-                        value = activity.Class;
+                    case OptionEnum.Subjects:
+                        if (context.Subjects.Any())
+                            activities = context.Subjects
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Room)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Subject)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.ClassGroup)
+                                 .Where(ent => ent.Id == entityId)
+                                 .Select(ent => ent.Activities)
+                                 .Single();
                         break;
                     case OptionEnum.Teachers:
-                        value = activity.Teacher;
+                        if (context.Teachers.Any())
+                            activities = context.Teachers
+                                .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Room)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.Subject)
+                                 .Include(ent => ent.Activities)
+                                    .ThenInclude(a => a.ClassGroup)
+                                .Where(ent => ent.Id == entityId)
+                                .Select(ent => ent.Activities)
+                                .Single();
                         break;
                 }
-                if (value == selectedValue)
-                {
-                    filteredActivities.Add(Tuple.Create(activity, i));
-                }
-                i++;
             }
-            return filteredActivities;
-        }
-
-        private List<Tuple<string, int>> GenerateLabels(OptionEnum selectedOption, string selectedValue)
-        {
-            var filteredActivities = getFilteredActivities(selectedOption, selectedValue);
+            if (activities == null)
+                activities = new List<Activity>();
 
             const int rows = 9;
             const int cols = 5;
             var labels = new List<Tuple<string, int>>();
             for (int i = 0; i < rows * cols; i++)
             {
-                labels.Add(Tuple.Create("", -1));
+                labels.Add(Tuple.Create("", 0));
             }
 
-            foreach (var activity in filteredActivities)
+            foreach (var activity in activities)
             {
                 string strToShow;
                 switch (selectedOption)
                 {
                     case OptionEnum.Rooms:
                     default:
-                        strToShow = activity.Item1.Group;
+                        strToShow = activity.ClassGroup.Name;
                         break;
-                    case OptionEnum.Groups:
-                        strToShow = activity.Item1.Room + " " + activity.Item1.Class;
+                    case OptionEnum.ClassGroups:
+                        strToShow = activity.Room.Name + " " + activity.Subject.Name;
                         break;
                     case OptionEnum.Teachers:
-                        strToShow = activity.Item1.Room + " " + activity.Item1.Class + " " + activity.Item1.Group;
+                        strToShow = activity.Room.Name + " " + activity.Subject.Name + " " + activity.ClassGroup.Name;
                         break;
                 }
-                labels[activity.Item1.Slot] = Tuple.Create(strToShow, activity.Item2);
+                labels[activity.SlotId] = Tuple.Create(strToShow, activity.SlotId);
             }
             return labels;
         }
