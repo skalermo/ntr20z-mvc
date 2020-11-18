@@ -71,29 +71,49 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult SelectOptionValue(OptionEnum selectedOption, int selectedEntity)
+        public ActionResult SelectOptionValue(OptionEnum selectedOption, int selectedEntityId)
         {
             TempData["selectedOption"] = selectedOption;
-            TempData["selectedEntityId"] = selectedEntity;
+            TempData["selectedEntityId"] = selectedEntityId;
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(OptionEnum selectedOption, string selectedEntity, int idx, int slot)
+        public ActionResult ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
         {
 
             Activity activity;
             Slot chosenSlot;
+            Entity entity;
             using (var context = new SchoolContext())
             {
                 chosenSlot = context.Slots.Find(slot);
+                switch (selectedOption)
+                {
+                    case OptionEnum.Rooms:
+                    default:
+                        entity = context.Rooms.Find(selectedEntityId);
+                        break;
+                    case OptionEnum.ClassGroups:
+                        entity = context.ClassGroups.Find(selectedEntityId);
+                        break;
+                    case OptionEnum.Teachers:
+                        entity = context.Teachers.Find(selectedEntityId);
+                        break;
+                }
             }
+
             if (idx > 0)
             {
                 using (var context = new SchoolContext())
                 {
-                    activity = context.Activities.Find(idx);
-
+                    activity = context.Activities
+                    .Include(activity => activity.Room)
+                    .Include(activity => activity.ClassGroup)
+                    .Include(activity => activity.Subject)
+                    .Include(activity => activity.Teacher)
+                    .Where(activity => activity.ActivityId == idx)
+                    .Single();
                 }
             }
             else
@@ -104,11 +124,39 @@ namespace SchoolScheduler.Controllers
             activity.Slot = chosenSlot;
 
             ViewBag.selectedOption = selectedOption;
-            ViewBag.selectedEntity = selectedEntity;
+            ViewBag.selectedEntity = entity;
             ViewBag.idx = idx;
 
-            // ViewBag.classes = data.Classes;
+            using (var db = new SchoolContext())
+            {
+                if (selectedOption != OptionEnum.Rooms)
+                    ViewBag.Rooms = db.Rooms
+                    .Include(r => r.Activities)
+                    .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                    .ToList();
+                else
+                    ViewBag.Rooms = db.Rooms.ToList();
 
+                if (selectedOption != OptionEnum.ClassGroups)
+                    ViewBag.ClassGroups = db.ClassGroups
+                        .Include(s => s.Activities)
+                        .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                        .ToList();
+                else
+                    ViewBag.ClassGroups = db.ClassGroups.ToList();
+
+                ViewBag.Subjects = db.Subjects.ToList();
+
+                if (selectedOption != OptionEnum.Teachers)
+                    ViewBag.Teachers = db.Teachers
+                    .Include(s => s.Activities)
+                    .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                    .ToList();
+                else
+                    ViewBag.Teachers = db.Teachers.ToList();
+            }
+
+            // ViewBag.classes = data.Classes;
             // ViewBag.rooms = data.Rooms;
             // ViewBag.groups = data.Groups;
             // ViewBag.teachers = data.Teachers;
@@ -312,7 +360,7 @@ namespace SchoolScheduler.Controllers
                         strToShow = activity.Room.Name + " " + activity.Subject.Name + " " + activity.ClassGroup.Name;
                         break;
                 }
-                labels[activity.SlotId] = Tuple.Create(strToShow, activity.SlotId);
+                labels[activity.SlotId - 1] = Tuple.Create(strToShow, activity.ActivityId);
             }
             return labels;
         }

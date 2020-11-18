@@ -36,7 +36,7 @@
     {
         <div class="col-md-1.5">
             @* <label>@Model.selected</label> *@
-            @Html.DropDownList("selectedEntity",
+            @Html.DropDownList("selectedEntityId",
         new SelectList(ViewBag.optionList.entities, nameof(Entity.Id), nameof(Entity.Name),
             ViewBag.optionList.selectedEntity.Id),
         new { onchange="this.form.submit();" })
@@ -66,8 +66,9 @@
             <div class="slot index">@(activitiesTimes[i/cols])</div>
         }
 
-        <a href="" class="fill-div slot" data-toggle="modal" data-target="#activityModal" data-url='@(Url.Action("ActivityModal", new {ViewBag.optionList.selectedOption, 
-                                                                                            ViewBag.optionList.selectedEntity, idx=@tuple.Item2, slot=@i+1}))'>
+        <a href="" class="fill-div slot" data-toggle="modal" data-target="#activityModal"
+            data-url='@(Url.Action("ActivityModal", new {ViewBag.optionList.selectedOption, 
+              selectedEntityId=ViewBag.optionList.selectedEntity.Id, idx=@tuple.Item2, slot=@i+1}))'>
 
             @tuple.Item1
         </a>
