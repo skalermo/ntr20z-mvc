@@ -1,15 +1,12 @@
-using System.ComponentModel.Design.Serialization;
-using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace SchoolScheduler.Models
 {
     public enum OptionEnum
     {
         Rooms,
-        Groups,
-        Classes,
+        ClassGroups,
+        Subjects,
         Teachers
     }
 
@@ -20,7 +17,7 @@ namespace SchoolScheduler.Models
             selectedOption = OptionEnum.Rooms;
         }
         public OptionEnum selectedOption { get; set; }
-        public string selectedValue { get; set; }
-        public List<string> values { get; set; }
+        public Entity selectedEntity { get; set; }
+        public List<Entity> entities { get; set; }
     }
 }

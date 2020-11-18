@@ -1,22 +1,22 @@
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 
 namespace SchoolScheduler.Models
 {
     public class Activity
     {
-        [JsonPropertyName("room")]
-        public string Room { get; set; }
+        public int ActivityId { get; set; }
+        public int TeacherId { get; set; }
+        public int SubjectId { get; set; }
+        public int ClassGroupId { get; set; }
+        public int RoomId { get; set; }
+        public int SlotId { get; set; }
 
-        [JsonPropertyName("group")]
-        public string Group { get; set; }
-
-        [JsonPropertyName("class")]
-        public string Class { get; set; }
-
-        [JsonPropertyName("slot")]
-        public int Slot { get; set; }
-
-        [JsonPropertyName("teacher")]
-        public string Teacher { get; set; }
+        [Timestamp]
+        public byte[] Timestamp { get; set; }
+        public virtual Teacher Teacher { get; set; }
+        public virtual Subject Subject { get; set; }
+        public virtual ClassGroup ClassGroup { get; set; }
+        public virtual Room Room { get; set; }
+        public virtual Slot Slot { get; set; }
     }
 }
