@@ -16,10 +16,10 @@
     {
             <div class="modal-body">
                 <div class="form-group row">
-                    <label for="room" class="col-sm-2 col-form-label">Room</label>
+                    <label for="roomId" class="col-sm-2 col-form-label">Room</label>
                     <div class="col-sm-10">
 
-                        <select name="room" @(ViewBag.selectedOption == OptionEnum.Rooms ? "disabled" :
+                        <select name="roomId" @(ViewBag.selectedOption == OptionEnum.Rooms ? "disabled" :
                                 "")>
                             @if (ViewBag.idx == 0 && ViewBag.selectedOption != OptionEnum.Rooms)
                             {
@@ -31,13 +31,13 @@
 
                                 if (ViewBag.idx != 0 && room.Id == Model.Room.Id)
                                 {
-                                            <option value="@room" selected>@room</option>
+                                            <option value="@room.Id" selected>@room</option>
                                 }
                                 else if (ViewBag.idx == 0 && ViewBag.selectedOption == OptionEnum.Rooms){
                                             <option value="@ViewBag.selectedEntity.Id">@ViewBag.selectedEntity.Name</option>
                                 }
                                 else {
-                                            <option value="@room">@room</option>
+                                            <option value="@room.Id">@room</option>
                                 }
                             }
 
@@ -45,10 +45,10 @@
                                     </div>
                                 </div>
                                 <div class="form-group row">
-                                    <label for="classGroup" class="col-sm-2 col-form-label">Group</label>
+                                    <label for="classGroupId" class="col-sm-2 col-form-label">Group</label>
                                     <div class="col-sm-10">
 
-                                        <select name="classGroup" @(ViewBag.selectedOption == OptionEnum.ClassGroups ? "disabled" : "")>
+                                        <select name="classGroupId" @(ViewBag.selectedOption == OptionEnum.ClassGroups ? "disabled" : "")>
                                            @if (ViewBag.idx == 0 && ViewBag.selectedOption != OptionEnum.ClassGroups)
                             {
                                         <option value="" disabled selected>Select a group</option>
@@ -58,13 +58,13 @@
                             {
                                 if (ViewBag.idx != 0 && classGroup.Id == Model.ClassGroup.Id)
                                 {
-                                            <option value="@classGroup" selected>@classGroup</option>
+                                            <option value="@classGroup.Id" selected>@classGroup</option>
                                 }
                                 else if (ViewBag.idx == 0 && ViewBag.selectedOption == OptionEnum.ClassGroups){
                                             <option value="@ViewBag.selectedEntity.Id">@ViewBag.selectedEntity.Name</option>
                                 }
                                 else {
-                                            <option value="@classGroup">@classGroup</option>
+                                            <option value="@classGroup.Id">@classGroup</option>
                                 }
                             }
                                         </select>
@@ -73,10 +73,10 @@
                                 </div>
 
                                 <div class="form-group row">
-                                    <label for="subject" class="col-sm-2 col-form-label">Subject</label>
+                                    <label for="subjectId" class="col-sm-2 col-form-label">Subject</label>
                                     <div class="col-sm-10">
 
-                                        <select name="subject">
+                                        <select name="subjectId">
                                             @if (ViewBag.idx == 0)
                             {
                                         <option value="" disabled selected>Select a class</option>
@@ -86,10 +86,10 @@
                             {
                                 if ( ViewBag.idx != 0 && subject.Id == Model.Subject.Id)
                                 {
-                                            <option value="@subject" selected>@subject</option>
+                                            <option value="@subject.Id" selected>@subject</option>
                                 }
                                 else {
-                                            <option value="@subject">@subject</option>
+                                            <option value="@subject.Id">@subject</option>
                                 }
                             }
                                         </select>
@@ -98,11 +98,11 @@
                                 </div>
 
                                 <div class="form-group row">
-                                    <label for="teacher" class="col-sm-2 col-form-label">Teacher</label>
+                                    <label for="teacherId" class="col-sm-2 col-form-label">Teacher</label>
                                     <div class="col-sm-10">
 
 
-                                        <select name="teacher" @(ViewBag.selectedOption == OptionEnum.Teachers ? "disabled" : "")>
+                                        <select name="teacherId" @(ViewBag.selectedOption == OptionEnum.Teachers ? "disabled" : "")>
                                             @if (ViewBag.idx == 0 && ViewBag.selectedOption != OptionEnum.Teachers)
                             {
                                         <option value="" disabled selected>Select a teacher</option>
@@ -112,13 +112,13 @@
                             {
                                 if (ViewBag.idx != 0 && teacher.Id == Model.Teacher.Id)
                                 {
-                                            <option value="@teacher" selected>@teacher</option>
+                                            <option value="@teacher.Id" selected>@teacher</option>
                                 }
                                 else if (ViewBag.idx == 0 && ViewBag.selectedOption == OptionEnum.Teachers){
                                             <option value="@ViewBag.selectedEntity.Id">@ViewBag.selectedEntity.Name</option>
                                 }
                                 else {
-                                            <option value="@teacher">@teacher</option>
+                                            <option value="@teacher.Id">@teacher</option>
                                 }
                             }
                                         </select>
@@ -129,9 +129,9 @@
                             </div>
 
                                 <input type="hidden" name="selectedOption" value=@ViewBag.selectedOption />
-                                <input type="hidden" name="selectedEntity" value=@ViewBag.selectedEntity />
-                                <input type="hidden" name="idx" value=@ViewBag.idx />
-                                <input type="hidden" name="slot" value="@Model.Slot" />
+                                <input type="hidden" name="selectedEntityId" value=@ViewBag.selectedEntity.Id />
+                                <input type="hidden" name="activityId" value=@ViewBag.idx />
+                                <input type="hidden" name="slotId" value="@Model.SlotId" />
 
                             <div class="modal-footer">
                                 <input type="submit" name="deleteButton" value="Delete" class="btn btn-secondary" @(ViewBag.idx == 0 ? "disabled" : "")>
