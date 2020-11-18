@@ -58,7 +58,6 @@ namespace SchoolScheduler.Controllers
             optionList.selectedEntity = selectedEntity;
 
             var activityLabels = GenerateLabels(selectedOption, selectedEntity.Id);
-            // ViewBag.selected = new ActivityFilterOptionList();
 
             ViewBag.activityLabels = activityLabels;
 
@@ -142,8 +141,8 @@ namespace SchoolScheduler.Controllers
 
                 if (selectedOption != OptionEnum.ClassGroups)
                     ViewBag.ClassGroups = db.ClassGroups
-                        .Include(s => s.Activities)
-                        .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                        .Include(cg => cg.Activities)
+                        .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
                         .ToList();
                 else
                     ViewBag.ClassGroups = db.ClassGroups.ToList();
@@ -152,8 +151,8 @@ namespace SchoolScheduler.Controllers
 
                 if (selectedOption != OptionEnum.Teachers)
                     ViewBag.Teachers = db.Teachers
-                    .Include(s => s.Activities)
-                    .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                    .Include(t => t.Activities)
+                    .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
                     .ToList();
                 else
                     ViewBag.Teachers = db.Teachers.ToList();
@@ -166,8 +165,6 @@ namespace SchoolScheduler.Controllers
         public ActionResult ModalAction(OptionEnum selectedOption, int selectedEntityId,
         int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId)
         {
-            foreach (var key in Request.Form)
-                Console.WriteLine(key);
             if (Request.Form.ContainsKey("deleteButton"))
             {
                 DeleteActivity(activityId);
@@ -220,53 +217,53 @@ namespace SchoolScheduler.Controllers
                     default:
                         if (context.Rooms.Any())
                             activities = context.Rooms
-                                .Include(ent => ent.Activities)
+                                .Include(r => r.Activities)
                                     .ThenInclude(a => a.Room)
-                                 .Include(ent => ent.Activities)
+                                 .Include(r => r.Activities)
                                     .ThenInclude(a => a.Subject)
-                                 .Include(ent => ent.Activities)
+                                 .Include(r => r.Activities)
                                     .ThenInclude(a => a.ClassGroup)
-                                .Where(ent => ent.Id == entityId)
-                                .Select(ent => ent.Activities)
+                                .Where(r => r.Id == entityId)
+                                .Select(r => r.Activities)
                                 .Single();
                         break;
                     case OptionEnum.ClassGroups:
                         if (context.ClassGroups.Any())
                             activities = context.ClassGroups
-                                 .Include(ent => ent.Activities)
+                                 .Include(cg => cg.Activities)
                                     .ThenInclude(a => a.Room)
-                                 .Include(ent => ent.Activities)
+                                 .Include(cg => cg.Activities)
                                     .ThenInclude(a => a.Subject)
-                                 .Include(ent => ent.Activities)
+                                 .Include(cg => cg.Activities)
                                     .ThenInclude(a => a.ClassGroup)
-                             .Where(ent => ent.Id == entityId)
-                             .Select(ent => ent.Activities)
+                             .Where(cg => cg.Id == entityId)
+                             .Select(cg => cg.Activities)
                              .Single();
                         break;
                     case OptionEnum.Subjects:
                         if (context.Subjects.Any())
                             activities = context.Subjects
-                                 .Include(ent => ent.Activities)
+                                 .Include(s => s.Activities)
                                     .ThenInclude(a => a.Room)
-                                 .Include(ent => ent.Activities)
+                                 .Include(s => s.Activities)
                                     .ThenInclude(a => a.Subject)
-                                 .Include(ent => ent.Activities)
+                                 .Include(s => s.Activities)
                                     .ThenInclude(a => a.ClassGroup)
-                                 .Where(ent => ent.Id == entityId)
-                                 .Select(ent => ent.Activities)
+                                 .Where(s => s.Id == entityId)
+                                 .Select(s => s.Activities)
                                  .Single();
                         break;
                     case OptionEnum.Teachers:
                         if (context.Teachers.Any())
                             activities = context.Teachers
-                                .Include(ent => ent.Activities)
+                                .Include(t => t.Activities)
                                     .ThenInclude(a => a.Room)
-                                 .Include(ent => ent.Activities)
+                                 .Include(t => t.Activities)
                                     .ThenInclude(a => a.Subject)
-                                 .Include(ent => ent.Activities)
+                                 .Include(t => t.Activities)
                                     .ThenInclude(a => a.ClassGroup)
-                                .Where(ent => ent.Id == entityId)
-                                .Select(ent => ent.Activities)
+                                .Where(t => t.Id == entityId)
+                                .Select(t => t.Activities)
                                 .Single();
                         break;
                 }
