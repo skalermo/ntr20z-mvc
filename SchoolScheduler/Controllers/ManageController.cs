@@ -10,6 +10,9 @@ namespace SchoolScheduler.Controllers
     {
         public ActionResult Index()
         {
+            if (!SchoolContext.CanConnect())
+                return RedirectToAction("Index", "Error");
+
             OptionEnum selectedOption = OptionEnum.Rooms;
             if (TempData["selected"] != null)
             {

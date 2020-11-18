@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using System;
 using SchoolScheduler.Models;
+
 public class SchoolContext : DbContext
 {
     public DbSet<Room> Rooms { get; set; }
@@ -9,6 +9,7 @@ public class SchoolContext : DbContext
     public DbSet<Teacher> Teachers { get; set; }
     public DbSet<Activity> Activities { get; set; }
     public DbSet<Slot> Slots { get; set; }
+
 
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -73,5 +74,19 @@ public class SchoolContext : DbContext
 
         mb.Entity<Activity>().HasData(new Activity() { ActivityId = 1, RoomId = 1, ClassGroupId = 1, SubjectId = 1, SlotId = 1, TeacherId = 1 });
         mb.Entity<Activity>().HasData(new Activity() { ActivityId = 2, RoomId = 4, ClassGroupId = 3, SubjectId = 3, SlotId = 3, TeacherId = 2 });
+    }
+
+    public static bool CanConnect()
+    {
+        bool canConnect = false;
+        using (var db = new SchoolContext())
+        {
+            try
+            {
+                canConnect = db.Database.CanConnect();
+            }
+            catch { }
+        }
+        return canConnect;
     }
 }
