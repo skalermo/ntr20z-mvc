@@ -3,6 +3,7 @@ using System;
 using SchoolScheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace SchoolScheduler.Controllers
 {
@@ -55,10 +56,8 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpPost]
-        public ActionResult Delete(OptionEnum selectedOption)
+        public async Task<ActionResult> Delete(OptionEnum selectedOption, int id)
         {
-            int id = Convert.ToInt32(Request.Form["id"]);
-
             using (var context = new SchoolContext())
             {
                 Entity entityToDelete;
@@ -66,47 +65,60 @@ namespace SchoolScheduler.Controllers
                 switch (selectedOption)
                 {
                     case OptionEnum.Rooms:
-                        entityToDelete = context.Rooms
+                        entityToDelete = await context.Rooms
                             .Include(r => r.Activities)
                             .Where(r => r.Id == id)
-                            .Single();
+                            .SingleOrDefaultAsync();
 
-                        if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
+                        if (entityToDelete == null)
+                            // TempData["Alert"] = "Concurrency warning: already deleted";
+                            ;
+                        else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
                             context.Rooms.Remove((Room)entityToDelete);
 
                         break;
                     case OptionEnum.ClassGroups:
-                        entityToDelete = context.ClassGroups
+                        entityToDelete = await context.ClassGroups
                             .Include(cg => cg.Activities)
                             .Where(cg => cg.Id == id)
-                            .Single();
-                        if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
+                            .SingleAsync();
+
+                        if (entityToDelete == null)
+                            // TempData["Alert"] = "Concurrency warning: already deleted";
+                            ;
+                        else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
                             context.ClassGroups.Remove((ClassGroup)entityToDelete);
 
                         break;
                     case OptionEnum.Subjects:
-                        entityToDelete = context.Subjects
+                        entityToDelete = await context.Subjects
                             .Include(s => s.Activities)
                             .Where(s => s.Id == id)
-                            .Single();
+                            .SingleAsync();
 
-                        if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
+                        if (entityToDelete == null)
+                            // TempData["Alert"] = "Concurrency warning: already deleted";
+                            ;
+                        else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
                             context.Subjects.Remove((Subject)entityToDelete);
 
                         break;
                     case OptionEnum.Teachers:
-                        entityToDelete = context.Teachers
+                        entityToDelete = await context.Teachers
                             .Include(t => t.Activities)
                             .Where(t => t.Id == id)
-                            .Single();
+                            .SingleAsync();
 
-                        if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
+                        if (entityToDelete == null)
+                            // TempData["Alert"] = "Concurrency warning: already deleted";
+                            ;
+                        else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
                             context.Teachers.Remove((Teacher)entityToDelete);
@@ -124,6 +136,7 @@ namespace SchoolScheduler.Controllers
         [HttpPost]
         public ActionResult Add(OptionEnum selectedOption, Entity entity)
         {
+            // if (entity.Name != null)
             using (var context = new SchoolContext())
             {
                 switch (selectedOption)
@@ -159,6 +172,8 @@ namespace SchoolScheduler.Controllers
                 }
                 context.SaveChanges();
             }
+            // else
+            //     TempData["Alert"] = "Cannot add empty name";
             TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
         }
