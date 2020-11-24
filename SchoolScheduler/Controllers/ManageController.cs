@@ -136,44 +136,44 @@ namespace SchoolScheduler.Controllers
         [HttpPost]
         public ActionResult Add(OptionEnum selectedOption, Entity entity)
         {
-            // if (entity.Name != null)
-            using (var context = new SchoolContext())
-            {
-                switch (selectedOption)
+            if (entity.Name != null)
+                using (var context = new SchoolContext())
                 {
-                    case OptionEnum.Rooms:
-                        Room newRoom = new Room(entity);
-                        if (context.Rooms.Any(r => r.Name == newRoom.Name))
-                            TempData["Alert"] = "Entity already exists";
-                        else
-                            context.Rooms.Add(newRoom);
-                        break;
-                    case OptionEnum.ClassGroups:
-                        ClassGroup newClassGroup = new ClassGroup(entity);
-                        if (context.ClassGroups.Any(cg => cg.Name == newClassGroup.Name))
-                            TempData["Alert"] = "Entity already exists";
-                        else
-                            context.ClassGroups.Add(newClassGroup);
-                        break;
-                    case OptionEnum.Subjects:
-                        Subject newSubject = new Subject(entity);
-                        if (context.Subjects.Any(s => s.Name == newSubject.Name))
-                            TempData["Alert"] = "Entity already exists";
-                        else
-                            context.Subjects.Add(newSubject);
-                        break;
-                    case OptionEnum.Teachers:
-                        Teacher newTeacher = new Teacher(entity);
-                        if (context.Teachers.Any(t => t.Name == newTeacher.Name))
-                            TempData["Alert"] = "Entity already exists";
-                        else
-                            context.Teachers.Add(newTeacher);
-                        break;
+                    switch (selectedOption)
+                    {
+                        case OptionEnum.Rooms:
+                            Room newRoom = new Room(entity);
+                            if (context.Rooms.Any(r => r.Name == newRoom.Name))
+                                TempData["Alert"] = "Entity already exists";
+                            else
+                                context.Rooms.Add(newRoom);
+                            break;
+                        case OptionEnum.ClassGroups:
+                            ClassGroup newClassGroup = new ClassGroup(entity);
+                            if (context.ClassGroups.Any(cg => cg.Name == newClassGroup.Name))
+                                TempData["Alert"] = "Entity already exists";
+                            else
+                                context.ClassGroups.Add(newClassGroup);
+                            break;
+                        case OptionEnum.Subjects:
+                            Subject newSubject = new Subject(entity);
+                            if (context.Subjects.Any(s => s.Name == newSubject.Name))
+                                TempData["Alert"] = "Entity already exists";
+                            else
+                                context.Subjects.Add(newSubject);
+                            break;
+                        case OptionEnum.Teachers:
+                            Teacher newTeacher = new Teacher(entity);
+                            if (context.Teachers.Any(t => t.Name == newTeacher.Name))
+                                TempData["Alert"] = "Entity already exists";
+                            else
+                                context.Teachers.Add(newTeacher);
+                            break;
+                    }
+                    context.SaveChanges();
                 }
-                context.SaveChanges();
-            }
-            // else
-            //     TempData["Alert"] = "Cannot add empty name";
+            else
+                TempData["Alert"] = "Cannot add empty name";
             TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
         }
