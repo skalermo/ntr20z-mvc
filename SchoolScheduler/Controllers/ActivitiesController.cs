@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using SchoolScheduler.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace SchoolScheduler.Controllers
 {
@@ -43,15 +44,20 @@ namespace SchoolScheduler.Controllers
                 }
             }
 
-            Entity selectedEntity = new Entity();
-            if (Convert.ToInt32(TempData.Peek("selectedEntityId")) > 0)
+            // Entity selectedEntity = null;
+            // if (Convert.ToInt32(TempData.Peek("selectedEntityId")) > 0)
+            // {
+            int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
+            Entity selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).SingleOrDefault();
+            // }
+            if (selectedEntity == null)
             {
-                int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
-                selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).Single();
-            }
-            else if (optionList.entities.Any())
-            {
-                selectedEntity = optionList.entities[0];
+                if (selectedEntityId > 0)
+                    TempData["Alert"] = "Concurrency warning: selected entity was already deleted";
+                if (optionList.entities.Any())
+                    selectedEntity = optionList.entities[0];
+                else
+                    selectedEntity = new Entity();
             }
 
             optionList.selectedOption = selectedOption;
@@ -81,7 +87,7 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
+        public async Task<ActionResult> ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
         {
 
             Activity activity;
@@ -89,33 +95,41 @@ namespace SchoolScheduler.Controllers
             Entity entity;
             using (var context = new SchoolContext())
             {
-                chosenSlot = context.Slots.Find(slot);
+                chosenSlot = await context.Slots.FindAsync(slot);
                 switch (selectedOption)
                 {
                     case OptionEnum.Rooms:
                     default:
-                        entity = context.Rooms.Find(selectedEntityId);
+                        entity = await context.Rooms.FindAsync(selectedEntityId);
                         break;
                     case OptionEnum.ClassGroups:
-                        entity = context.ClassGroups.Find(selectedEntityId);
+                        entity = await context.ClassGroups.FindAsync(selectedEntityId);
                         break;
                     case OptionEnum.Teachers:
-                        entity = context.Teachers.Find(selectedEntityId);
+                        entity = await context.Teachers.FindAsync(selectedEntityId);
                         break;
                 }
             }
+
+            // Selected entity from the dropdown 
+            // which was then deleted by another user
+            if (entity == null)
+                entity = new Entity() { Name = "", Id = selectedEntityId };
+            // entity.Name = "";
+            // entity.Id = selectedEntityId;
+            //     return PartialView(new Activity());
 
             if (idx > 0)
             {
                 using (var context = new SchoolContext())
                 {
-                    activity = context.Activities
+                    activity = await context.Activities
                     .Include(activity => activity.Room)
                     .Include(activity => activity.ClassGroup)
                     .Include(activity => activity.Subject)
                     .Include(activity => activity.Teacher)
                     .Where(activity => activity.ActivityId == idx)
-                    .Single();
+                    .SingleAsync();
                 }
             }
             else
@@ -132,30 +146,30 @@ namespace SchoolScheduler.Controllers
             using (var db = new SchoolContext())
             {
                 if (selectedOption != OptionEnum.Rooms)
-                    ViewBag.Rooms = db.Rooms
+                    ViewBag.Rooms = await db.Rooms
                     .Include(r => r.Activities)
                     .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                    .ToList();
+                    .ToListAsync();
                 else
-                    ViewBag.Rooms = db.Rooms.ToList();
+                    ViewBag.Rooms = await db.Rooms.ToListAsync();
 
                 if (selectedOption != OptionEnum.ClassGroups)
-                    ViewBag.ClassGroups = db.ClassGroups
+                    ViewBag.ClassGroups = await db.ClassGroups
                         .Include(cg => cg.Activities)
                         .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                        .ToList();
+                        .ToListAsync();
                 else
-                    ViewBag.ClassGroups = db.ClassGroups.ToList();
+                    ViewBag.ClassGroups = await db.ClassGroups.ToListAsync();
 
-                ViewBag.Subjects = db.Subjects.ToList();
+                ViewBag.Subjects = await db.Subjects.ToListAsync();
 
                 if (selectedOption != OptionEnum.Teachers)
-                    ViewBag.Teachers = db.Teachers
+                    ViewBag.Teachers = await db.Teachers
                     .Include(t => t.Activities)
                     .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                    .ToList();
+                    .ToListAsync();
                 else
-                    ViewBag.Teachers = db.Teachers.ToList();
+                    ViewBag.Teachers = await db.Teachers.ToListAsync();
             }
 
             return PartialView(activity);
@@ -163,7 +177,8 @@ namespace SchoolScheduler.Controllers
 
         [HttpPost]
         public ActionResult ModalAction(OptionEnum selectedOption, int selectedEntityId,
-        int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId)
+        int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId,
+        byte timestamp)
         {
             if (Request.Form.ContainsKey("deleteButton"))
             {
@@ -180,10 +195,12 @@ namespace SchoolScheduler.Controllers
                         db.Activities.Add(activity);
                     }
 
+                    // todo check if these fields are not already deleted
                     activity.RoomId = roomId;
                     activity.ClassGroupId = classGroupId;
                     activity.SubjectId = subjectId;
                     activity.TeacherId = teacherId;
+
                     activity.SlotId = slotId;
 
                     db.SaveChanges();
