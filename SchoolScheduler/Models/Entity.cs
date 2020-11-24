@@ -9,7 +9,6 @@ namespace SchoolScheduler.Models
         public string Name { get; set; }
         public virtual List<Activity> Activities { get; set; }
 
-        [Timestamp]
         public byte[] Timestamp { get; set; }
 
         public override string ToString()

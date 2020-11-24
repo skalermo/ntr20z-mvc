@@ -23,6 +23,7 @@ public class SchoolContext : DbContext
     {
         InitialMigration(modelBuilder);
         PopulateMigration(modelBuilder);
+        TimestampMigration(modelBuilder);
     }
 
     private void InitialMigration(ModelBuilder mb)
@@ -74,6 +75,33 @@ public class SchoolContext : DbContext
 
         mb.Entity<Activity>().HasData(new Activity() { ActivityId = 1, RoomId = 1, ClassGroupId = 1, SubjectId = 1, SlotId = 1, TeacherId = 1 });
         mb.Entity<Activity>().HasData(new Activity() { ActivityId = 2, RoomId = 4, ClassGroupId = 3, SubjectId = 3, SlotId = 3, TeacherId = 2 });
+    }
+
+    private void TimestampMigration(ModelBuilder mb)
+    {
+        mb.Entity<Activity>()
+                .Property(a => a.Timestamp)
+                .IsConcurrencyToken();
+
+        mb.Entity<Room>()
+                .Property(e => e.Timestamp)
+                .IsConcurrencyToken();
+
+        mb.Entity<ClassGroup>()
+                .Property(e => e.Timestamp)
+                .IsConcurrencyToken();
+
+        mb.Entity<Subject>()
+                .Property(e => e.Timestamp)
+                .IsConcurrencyToken();
+
+        mb.Entity<Teacher>()
+                .Property(e => e.Timestamp)
+                .IsConcurrencyToken();
+
+        mb.Entity<Slot>()
+                .Property(s => s.Timestamp)
+                .IsConcurrencyToken();
     }
 
     public static bool CanConnect()
