@@ -16,6 +16,14 @@
 
 <h2>Activities panel</h2>
 
+@if (TempData["Alert"] != null)
+{
+    <div class="alert alert-danger">
+        <a href="#" class="close" data-dismiss="alert">×</a>
+        @TempData["Alert"]
+    </div>
+}
+
 <div class="row ml-1 form-group">
     @using (Html.BeginForm("SelectOption", "Activities", FormMethod.Post))
     {
