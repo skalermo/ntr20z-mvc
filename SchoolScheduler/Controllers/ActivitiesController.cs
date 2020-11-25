@@ -10,8 +10,10 @@ namespace SchoolScheduler.Controllers
 {
     public class ActivitiesController : Controller
     {
+        private SchoolContext db = new SchoolContext();
+
         // GET: Activities
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             if (!SchoolContext.CanConnect())
                 return RedirectToAction("Index", "Error");
@@ -25,23 +27,20 @@ namespace SchoolScheduler.Controllers
             var optionList = new OptionList();
             optionList.entities = new List<Entity>();
 
-            using (var context = new SchoolContext())
+            switch (selectedOption)
             {
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                        optionList.entities = context.Rooms.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.ClassGroups:
-                        optionList.entities = context.ClassGroups.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.Subjects:
-                        optionList.entities = context.Subjects.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.Teachers:
-                        optionList.entities = context.Teachers.Cast<Entity>().ToList();
-                        break;
-                }
+                case OptionEnum.Rooms:
+                    optionList.entities = await db.Rooms.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.ClassGroups:
+                    optionList.entities = await db.ClassGroups.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.Subjects:
+                    optionList.entities = await db.Subjects.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.Teachers:
+                    optionList.entities = await db.Teachers.Cast<Entity>().ToListAsync();
+                    break;
             }
 
             // Entity selectedEntity = null;
@@ -63,7 +62,7 @@ namespace SchoolScheduler.Controllers
             optionList.selectedOption = selectedOption;
             optionList.selectedEntity = selectedEntity;
 
-            var activityLabels = GenerateLabels(selectedOption, selectedEntity.Id);
+            var activityLabels = await GenerateLabels(selectedOption, selectedEntity.Id);
 
             ViewBag.activityLabels = activityLabels;
 
@@ -93,22 +92,20 @@ namespace SchoolScheduler.Controllers
             Activity activity;
             Slot chosenSlot;
             Entity entity;
-            using (var context = new SchoolContext())
+
+            chosenSlot = await db.Slots.FindAsync(slot);
+            switch (selectedOption)
             {
-                chosenSlot = await context.Slots.FindAsync(slot);
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                    default:
-                        entity = await context.Rooms.FindAsync(selectedEntityId);
-                        break;
-                    case OptionEnum.ClassGroups:
-                        entity = await context.ClassGroups.FindAsync(selectedEntityId);
-                        break;
-                    case OptionEnum.Teachers:
-                        entity = await context.Teachers.FindAsync(selectedEntityId);
-                        break;
-                }
+                case OptionEnum.Rooms:
+                default:
+                    entity = await db.Rooms.FindAsync(selectedEntityId);
+                    break;
+                case OptionEnum.ClassGroups:
+                    entity = await db.ClassGroups.FindAsync(selectedEntityId);
+                    break;
+                case OptionEnum.Teachers:
+                    entity = await db.Teachers.FindAsync(selectedEntityId);
+                    break;
             }
 
             // Selected entity from the dropdown 
@@ -121,16 +118,13 @@ namespace SchoolScheduler.Controllers
 
             if (idx > 0)
             {
-                using (var context = new SchoolContext())
-                {
-                    activity = await context.Activities
-                    .Include(activity => activity.Room)
-                    .Include(activity => activity.ClassGroup)
-                    .Include(activity => activity.Subject)
-                    .Include(activity => activity.Teacher)
-                    .Where(activity => activity.ActivityId == idx)
-                    .SingleAsync();
-                }
+                activity = await db.Activities
+                .Include(activity => activity.Room)
+                .Include(activity => activity.ClassGroup)
+                .Include(activity => activity.Subject)
+                .Include(activity => activity.Teacher)
+                .Where(activity => activity.ActivityId == idx)
+                .SingleAsync();
             }
             else
             {
@@ -143,68 +137,62 @@ namespace SchoolScheduler.Controllers
             ViewBag.selectedEntity = entity;
             ViewBag.idx = idx;
 
-            using (var db = new SchoolContext())
-            {
-                if (selectedOption != OptionEnum.Rooms)
-                    ViewBag.Rooms = await db.Rooms
-                    .Include(r => r.Activities)
-                    .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+            if (selectedOption != OptionEnum.Rooms)
+                ViewBag.Rooms = await db.Rooms
+                .Include(r => r.Activities)
+                .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                .ToListAsync();
+            else
+                ViewBag.Rooms = await db.Rooms.ToListAsync();
+
+            if (selectedOption != OptionEnum.ClassGroups)
+                ViewBag.ClassGroups = await db.ClassGroups
+                    .Include(cg => cg.Activities)
+                    .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
                     .ToListAsync();
-                else
-                    ViewBag.Rooms = await db.Rooms.ToListAsync();
+            else
+                ViewBag.ClassGroups = await db.ClassGroups.ToListAsync();
 
-                if (selectedOption != OptionEnum.ClassGroups)
-                    ViewBag.ClassGroups = await db.ClassGroups
-                        .Include(cg => cg.Activities)
-                        .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                        .ToListAsync();
-                else
-                    ViewBag.ClassGroups = await db.ClassGroups.ToListAsync();
+            ViewBag.Subjects = await db.Subjects.ToListAsync();
 
-                ViewBag.Subjects = await db.Subjects.ToListAsync();
-
-                if (selectedOption != OptionEnum.Teachers)
-                    ViewBag.Teachers = await db.Teachers
-                    .Include(t => t.Activities)
-                    .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                    .ToListAsync();
-                else
-                    ViewBag.Teachers = await db.Teachers.ToListAsync();
-            }
+            if (selectedOption != OptionEnum.Teachers)
+                ViewBag.Teachers = await db.Teachers
+                .Include(t => t.Activities)
+                .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                .ToListAsync();
+            else
+                ViewBag.Teachers = await db.Teachers.ToListAsync();
 
             return PartialView(activity);
         }
 
         [HttpPost]
-        public ActionResult ModalAction(OptionEnum selectedOption, int selectedEntityId,
+        public async Task<ActionResult> ModalAction(OptionEnum selectedOption, int selectedEntityId,
         int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId,
         byte timestamp)
         {
             if (Request.Form.ContainsKey("deleteButton"))
             {
-                DeleteActivity(activityId);
+                await DeleteActivity(activityId);
             }
             else if (Request.Form.ContainsKey("saveButton"))
             {
-                using (var db = new SchoolContext())
+                Activity activity = await db.Activities.FindAsync(activityId);
+                if (activity == null)
                 {
-                    Activity activity = db.Activities.Find(activityId);
-                    if (activity == null)
-                    {
-                        activity = new Activity();
-                        db.Activities.Add(activity);
-                    }
-
-                    // todo check if these fields are not already deleted
-                    activity.RoomId = roomId;
-                    activity.ClassGroupId = classGroupId;
-                    activity.SubjectId = subjectId;
-                    activity.TeacherId = teacherId;
-
-                    activity.SlotId = slotId;
-
-                    db.SaveChanges();
+                    activity = new Activity();
+                    await db.Activities.AddAsync(activity);
                 }
+
+                // todo check if these fields are not already deleted
+                activity.RoomId = roomId;
+                activity.ClassGroupId = classGroupId;
+                activity.SubjectId = subjectId;
+                activity.TeacherId = teacherId;
+
+                activity.SlotId = slotId;
+
+                await db.SaveChangesAsync();
             }
 
             TempData["selectedOption"] = selectedOption;
@@ -212,78 +200,72 @@ namespace SchoolScheduler.Controllers
             return RedirectToAction("Index");
         }
 
-        private void DeleteActivity(int activityId)
+        private async Task DeleteActivity(int activityId)
         {
             Activity activity = new Activity() { ActivityId = activityId };
-            using (var db = new SchoolContext())
-            {
-                db.Activities.Attach(activity);
-                db.Activities.Remove(activity);
-                db.SaveChanges();
-            }
+            db.Activities.Attach(activity);
+            db.Activities.Remove(activity);
+            await db.SaveChangesAsync();
         }
 
-        private List<Tuple<string, int>> GenerateLabels(OptionEnum selectedOption, int entityId)
+        private async Task<List<Tuple<string, int>>> GenerateLabels(OptionEnum selectedOption, int entityId)
         {
             List<Activity> activities = null;
-            using (var context = new SchoolContext())
+            switch (selectedOption)
             {
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                    default:
-                        if (context.Rooms.Any())
-                            activities = context.Rooms
-                                .Include(r => r.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(r => r.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(r => r.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                .Where(r => r.Id == entityId)
-                                .Select(r => r.Activities)
-                                .Single();
-                        break;
-                    case OptionEnum.ClassGroups:
-                        if (context.ClassGroups.Any())
-                            activities = context.ClassGroups
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                             .Where(cg => cg.Id == entityId)
-                             .Select(cg => cg.Activities)
-                             .Single();
-                        break;
-                    case OptionEnum.Subjects:
-                        if (context.Subjects.Any())
-                            activities = context.Subjects
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                 .Where(s => s.Id == entityId)
-                                 .Select(s => s.Activities)
-                                 .Single();
-                        break;
-                    case OptionEnum.Teachers:
-                        if (context.Teachers.Any())
-                            activities = context.Teachers
-                                .Include(t => t.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(t => t.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(t => t.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                .Where(t => t.Id == entityId)
-                                .Select(t => t.Activities)
-                                .Single();
-                        break;
-                }
+                case OptionEnum.Rooms:
+                default:
+                    if (await db.Rooms.AnyAsync())
+                        activities = await db.Rooms
+                            .Include(r => r.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(r => r.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(r => r.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                            .Where(r => r.Id == entityId)
+                            .Select(r => r.Activities)
+                            .SingleAsync();
+                    break;
+                case OptionEnum.ClassGroups:
+                    if (await db.ClassGroups.AnyAsync())
+                        activities = await db.ClassGroups
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                         .Where(cg => cg.Id == entityId)
+                         .Select(cg => cg.Activities)
+                         .SingleAsync();
+                    break;
+                case OptionEnum.Subjects:
+                    if (await db.Subjects.AnyAsync())
+                        activities = await db.Subjects
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                             .Where(s => s.Id == entityId)
+                             .Select(s => s.Activities)
+                             .SingleAsync();
+                    break;
+                case OptionEnum.Teachers:
+                    if (await db.Teachers.AnyAsync())
+                        activities = await db.Teachers
+                            .Include(t => t.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(t => t.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(t => t.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                            .Where(t => t.Id == entityId)
+                            .Select(t => t.Activities)
+                            .SingleAsync();
+                    break;
             }
             if (activities == null)
                 activities = new List<Activity>();
@@ -315,6 +297,15 @@ namespace SchoolScheduler.Controllers
                 labels[activity.SlotId - 1] = Tuple.Create(strToShow, activity.ActivityId);
             }
             return labels;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
