@@ -81,27 +81,33 @@ public class SchoolContext : DbContext
     {
         mb.Entity<Activity>()
                 .Property(a => a.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
 
         mb.Entity<Room>()
                 .Property(e => e.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
 
         mb.Entity<ClassGroup>()
                 .Property(e => e.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
 
         mb.Entity<Subject>()
                 .Property(e => e.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
 
         mb.Entity<Teacher>()
                 .Property(e => e.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
 
         mb.Entity<Slot>()
                 .Property(s => s.Timestamp)
-                .IsConcurrencyToken();
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
     }
 
     public static bool CanConnect()

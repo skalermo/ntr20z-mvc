@@ -43,11 +43,10 @@ namespace SchoolScheduler.Migrations
                 nullable: true)
                 .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.ComputedColumn);
 
-            migrationBuilder.AddColumn<byte[]>(
+            migrationBuilder.AddColumn<DateTime>(
                 name: "Timestamp",
                 table: "Activities",
-                rowVersion: true,
-                nullable: true)
+                nullable: false)
                 .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.ComputedColumn);
         }
 
