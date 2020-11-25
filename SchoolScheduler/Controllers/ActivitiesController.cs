@@ -107,10 +107,16 @@ namespace SchoolScheduler.Controllers
                     break;
             }
 
+            ViewBag.concurrencyErrorDetected = false;
+
             // Selected entity from the dropdown 
             // which was then deleted by another user
             if (entity == null)
-                entity = new Entity() { Name = "", Id = selectedEntityId };
+            {
+                ViewBag.concurrencyErrorDetected = true;
+                TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
+                entity = new Entity();
+            }
             // entity.Name = "";
             // entity.Id = selectedEntityId;
             //     return PartialView(new Activity());
@@ -127,10 +133,13 @@ namespace SchoolScheduler.Controllers
                 .SingleOrDefaultAsync();
             }
 
-            if (activity == null)
+            if (activity == null && idx > 0)
             {
-                activity = new Activity();
+                ViewBag.concurrencyErrorDetected = true;
+                TempData["ConcurrencyAlert"] = "Selected activity was already deleted";
             }
+            if (activity == null)
+                activity = new Activity();
 
             activity.SlotId = chosenSlot.SlotId;
 
@@ -170,7 +179,7 @@ namespace SchoolScheduler.Controllers
         [HttpPost]
         public async Task<ActionResult> ModalAction(OptionEnum selectedOption, int selectedEntityId,
         int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId,
-        byte timestamp)
+        DateTime timestamp)
         {
             if (Request.Form.ContainsKey("deleteButton"))
             {
@@ -185,15 +194,25 @@ namespace SchoolScheduler.Controllers
                     await db.Activities.AddAsync(activity);
                 }
 
+
                 // todo check if these fields are not already deleted
-                activity.RoomId = roomId;
-                activity.ClassGroupId = classGroupId;
-                activity.SubjectId = subjectId;
-                activity.TeacherId = teacherId;
+                try
+                {
+                    activity.RoomId = roomId;
+                    activity.ClassGroupId = classGroupId;
+                    activity.SubjectId = subjectId;
+                    activity.TeacherId = teacherId;
 
-                activity.SlotId = slotId;
+                    activity.SlotId = slotId;
+                    db.Entry(activity).OriginalValues["Timestamp"] = timestamp;
 
-                await db.SaveChangesAsync();
+                    await db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    TempData["ConcurrencyAlert"] = "The activity was already changed by another user";
+                    // Console.WriteLine("We got 'em");
+                }
             }
 
             TempData["selectedOption"] = selectedOption;
