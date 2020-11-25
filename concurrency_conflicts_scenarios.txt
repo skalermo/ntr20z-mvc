@@ -1,0 +1,17 @@
+Possible conflicts scenarios: 9
+
+1. Entities
+	1.1 Trying to add new entity which was already added by another user. +
+	1.2 Trying to delete entity which was already deleted by another user. +
+
+2. Activities
+2.1 Conflicts due to changes in entities
+	2.1.1 Trying to select already deleted entity in dropdown list. +
+	2.1.2 Entity is deleted by another user, but was already selected by us, trying to add new activity +
+	2.1.3 Entity is deleted by another user, but was already selected by us and a modal window was already opened, trying to post with deleted entity.
+
+2.2 Conflicts due to changes in activities
+	2.2.1 Trying to delete already deleted activity. +
+	2.2.2 Trying to occupy slot which was already occupied with same room, class group or teacher.
+	2.2.3 Modal window is opened, trying to modify activity which was already deleted by another user. +
+	2.2.4 Trying to change activity which was already changed by another user (timestamp needed for resolving). +
