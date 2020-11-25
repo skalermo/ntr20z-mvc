@@ -190,14 +190,37 @@ namespace SchoolScheduler.Controllers
                 Activity activity = await db.Activities.FindAsync(activityId);
                 if (activity == null)
                 {
+                    // check if another user concurrently already occupied slot
+                    var conflictingActivities = await db.Activities
+                    .AnyAsync(a => a.SlotId == slotId
+                    && (a.RoomId == roomId || a.ClassGroupId == classGroupId || a.TeacherId == teacherId));
+
+                    if (conflictingActivities)
+                    {
+                        TempData["ConcurrencyAlert"] = @"The activity you are trying to create are conflicting 
+                        with already created by another user";
+                        TempData["selectedOption"] = selectedOption;
+                        TempData["selectedEntityId"] = selectedEntityId;
+                        return RedirectToAction("Index");
+                    }
                     activity = new Activity();
                     await db.Activities.AddAsync(activity);
                 }
 
-
-                // todo check if these fields are not already deleted
                 try
                 {
+                    // todo check if these fields are not already deleted
+                    if (!(await db.Rooms.AnyAsync(r => r.Id == roomId) &&
+                    await db.ClassGroups.AnyAsync(cg => cg.Id == classGroupId) &&
+                    await db.Subjects.AnyAsync(s => s.Id == subjectId) &&
+                    await db.Teachers.AnyAsync(t => t.Id == teacherId)))
+                    {
+                        TempData["ConcurrencyAlert"] = "One of the posted entities was already deleted by another user";
+                        TempData["selectedOption"] = selectedOption;
+                        TempData["selectedEntityId"] = selectedEntityId;
+                        return RedirectToAction("Index");
+                    }
+
                     activity.RoomId = roomId;
                     activity.ClassGroupId = classGroupId;
                     activity.SubjectId = subjectId;
@@ -211,7 +234,6 @@ namespace SchoolScheduler.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     TempData["ConcurrencyAlert"] = "The activity was already changed by another user";
-                    // Console.WriteLine("We got 'em");
                 }
             }
 
