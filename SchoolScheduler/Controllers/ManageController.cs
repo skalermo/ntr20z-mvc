@@ -71,8 +71,7 @@ namespace SchoolScheduler.Controllers
                             .SingleOrDefaultAsync();
 
                         if (entityToDelete == null)
-                            // TempData["Alert"] = "Concurrency warning: already deleted";
-                            ;
+                            TempData["Alert"] = "Concurrency warning: already deleted";
                         else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -86,8 +85,7 @@ namespace SchoolScheduler.Controllers
                             .SingleAsync();
 
                         if (entityToDelete == null)
-                            // TempData["Alert"] = "Concurrency warning: already deleted";
-                            ;
+                            TempData["Alert"] = "Concurrency warning: already deleted";
                         else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -101,8 +99,7 @@ namespace SchoolScheduler.Controllers
                             .SingleAsync();
 
                         if (entityToDelete == null)
-                            // TempData["Alert"] = "Concurrency warning: already deleted";
-                            ;
+                            TempData["Alert"] = "Concurrency warning: already deleted";
                         else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
@@ -116,8 +113,7 @@ namespace SchoolScheduler.Controllers
                             .SingleAsync();
 
                         if (entityToDelete == null)
-                            // TempData["Alert"] = "Concurrency warning: already deleted";
-                            ;
+                            TempData["Alert"] = "Concurrency warning: already deleted";
                         else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
                             TempData["Alert"] = "Used in an Activity";
                         else
