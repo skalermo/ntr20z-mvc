@@ -155,7 +155,7 @@ else {
 
 @if (ViewBag.selectedEntity.Name == "") 
 {
-    TempData["Alert"] = "Concurrency warning: selected entity was already deleted";
+    TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
     <script>
         document.forms[0].submit();
     </script>

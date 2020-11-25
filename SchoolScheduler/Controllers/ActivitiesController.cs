@@ -52,7 +52,7 @@ namespace SchoolScheduler.Controllers
             if (selectedEntity == null)
             {
                 if (selectedEntityId > 0)
-                    TempData["Alert"] = "Concurrency warning: selected entity was already deleted";
+                    TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
                 if (optionList.entities.Any())
                     selectedEntity = optionList.entities[0];
                 else
@@ -89,7 +89,6 @@ namespace SchoolScheduler.Controllers
         public async Task<ActionResult> ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
         {
 
-            Activity activity;
             Slot chosenSlot;
             Entity entity;
 
@@ -116,6 +115,7 @@ namespace SchoolScheduler.Controllers
             // entity.Id = selectedEntityId;
             //     return PartialView(new Activity());
 
+            Activity activity = null;
             if (idx > 0)
             {
                 activity = await db.Activities
@@ -124,9 +124,10 @@ namespace SchoolScheduler.Controllers
                 .Include(activity => activity.Subject)
                 .Include(activity => activity.Teacher)
                 .Where(activity => activity.ActivityId == idx)
-                .SingleAsync();
+                .SingleOrDefaultAsync();
             }
-            else
+
+            if (activity == null)
             {
                 activity = new Activity();
             }
@@ -202,10 +203,19 @@ namespace SchoolScheduler.Controllers
 
         private async Task DeleteActivity(int activityId)
         {
-            Activity activity = new Activity() { ActivityId = activityId };
-            db.Activities.Attach(activity);
-            db.Activities.Remove(activity);
-            await db.SaveChangesAsync();
+            Activity activityToDelete = await db.Activities.FindAsync(activityId);
+            if (activityToDelete != null)
+                try
+                {
+                    db.Entry(activityToDelete).State = EntityState.Deleted;
+                    await db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    TempData["ConcurrencyAlert"] = "Activity was already deleted";
+                }
+            else
+                TempData["ConcurrencyAlert"] = "Activity was already deleted";
         }
 
         private async Task<List<Tuple<string, int>>> GenerateLabels(OptionEnum selectedOption, int entityId)
