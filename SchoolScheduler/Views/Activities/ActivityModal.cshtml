@@ -4,7 +4,7 @@
     string modalTitle = ViewBag.idx != 0 ? "Edit Activity" : "Add New Activity";
 }
 
-@if (ViewBag.selectedEntity.Name == "")
+@if (ViewBag.concurrencyErrorDetected == true)
 {
     <script>
         document.getElementById("activityModal").modal("close");
@@ -153,9 +153,8 @@ else {
                 </div>
 }
 
-@if (ViewBag.selectedEntity.Name == "") 
+@if (ViewBag.concurrencyErrorDetected == true) 
 {
-    TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
     <script>
         document.forms[0].submit();
     </script>
