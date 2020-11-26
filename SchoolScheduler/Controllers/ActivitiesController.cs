@@ -181,7 +181,7 @@ namespace SchoolScheduler.Controllers
 
             if (Request.Form.ContainsKey("deleteButton"))
             {
-                await DeleteActivity(activityId);
+                await DeleteActivity(activityId, timestamp);
                 return RedirectToAction("Index");
             }
             else if (Request.Form.ContainsKey("saveButton"))
@@ -243,11 +243,18 @@ namespace SchoolScheduler.Controllers
             return RedirectToAction("Index");
         }
 
-        private async Task DeleteActivity(int activityId)
+        private async Task DeleteActivity(int activityId, DateTime timestamp)
         {
             Activity activityToDelete = await db.Activities.FindAsync(activityId);
             if (activityToDelete != null)
             {
+                if ((DateTime)db.Entry(activityToDelete).OriginalValues["Timestamp"] != timestamp)
+                {
+                    TempData["ConcurrencyAlert"] = @"The activity you are trying to delete
+                was already modified by another user. Your operation was cancelled";
+                    return;
+                }
+
                 db.Entry(activityToDelete).State = EntityState.Deleted;
                 await db.SaveChangesAsync();
             }

@@ -14,6 +14,6 @@ Possible conflicts scenarios: 11
 	2.2.1 Trying to select already deleted activity. +
 	2.2.2 Trying to delete already deleted activity (modal window is opened). +
 	2.2.3 Trying to modify already deleted activity (modal window is opened). +
-	2.2.4 Trying to delete already modified acitivity (modal window is opened) (timestamp needed for resolving). 
+	2.2.4 Trying to delete already modified acitivity (modal window is opened) (timestamp needed for resolving). +
 	2.2.5 Trying to occupy slot which was already occupied with same room, class group or teacher. +
 	2.2.6 Trying to change activity which was already changed by another user (modal window is opened) (timestamp needed for resolving). +
