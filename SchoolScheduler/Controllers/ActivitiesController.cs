@@ -43,12 +43,8 @@ namespace SchoolScheduler.Controllers
                     break;
             }
 
-            // Entity selectedEntity = null;
-            // if (Convert.ToInt32(TempData.Peek("selectedEntityId")) > 0)
-            // {
             int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
             Entity selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).SingleOrDefault();
-            // }
             if (selectedEntity == null)
             {
                 if (selectedEntityId > 0)
@@ -117,9 +113,6 @@ namespace SchoolScheduler.Controllers
                 TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
                 entity = new Entity();
             }
-            // entity.Name = "";
-            // entity.Id = selectedEntityId;
-            //     return PartialView(new Activity());
 
             Activity activity = null;
             if (idx > 0)
@@ -181,46 +174,50 @@ namespace SchoolScheduler.Controllers
         int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId,
         DateTime timestamp)
         {
+            TempData["selectedOption"] = selectedOption;
+            TempData["selectedEntityId"] = selectedEntityId;
+
             if (Request.Form.ContainsKey("deleteButton"))
             {
                 await DeleteActivity(activityId);
+                return RedirectToAction("Index");
             }
             else if (Request.Form.ContainsKey("saveButton"))
             {
+                // todo check if these fields are not already deleted
+                if (!(
+                    await db.Rooms.AnyAsync(r => r.Id == roomId) &&
+                    await db.ClassGroups.AnyAsync(cg => cg.Id == classGroupId) &&
+                    await db.Subjects.AnyAsync(s => s.Id == subjectId) &&
+                    await db.Teachers.AnyAsync(t => t.Id == teacherId
+                    )))
+                {
+                    TempData["ConcurrencyAlert"] = "One of the posted entities was already deleted by another user";
+                    return RedirectToAction("Index");
+                }
+
                 Activity activity = await db.Activities.FindAsync(activityId);
                 if (activity == null)
                 {
+                    // we are adding activity
+
                     // check if another user concurrently already occupied slot
                     var conflictingActivities = await db.Activities
                     .AnyAsync(a => a.SlotId == slotId
                     && (a.RoomId == roomId || a.ClassGroupId == classGroupId || a.TeacherId == teacherId));
-
                     if (conflictingActivities)
                     {
                         TempData["ConcurrencyAlert"] = @"The activity you are trying to create are conflicting 
                         with already created by another user";
-                        TempData["selectedOption"] = selectedOption;
-                        TempData["selectedEntityId"] = selectedEntityId;
                         return RedirectToAction("Index");
                     }
+
                     activity = new Activity();
                     await db.Activities.AddAsync(activity);
                 }
 
                 try
                 {
-                    // todo check if these fields are not already deleted
-                    if (!(await db.Rooms.AnyAsync(r => r.Id == roomId) &&
-                    await db.ClassGroups.AnyAsync(cg => cg.Id == classGroupId) &&
-                    await db.Subjects.AnyAsync(s => s.Id == subjectId) &&
-                    await db.Teachers.AnyAsync(t => t.Id == teacherId)))
-                    {
-                        TempData["ConcurrencyAlert"] = "One of the posted entities was already deleted by another user";
-                        TempData["selectedOption"] = selectedOption;
-                        TempData["selectedEntityId"] = selectedEntityId;
-                        return RedirectToAction("Index");
-                    }
-
                     activity.RoomId = roomId;
                     activity.ClassGroupId = classGroupId;
                     activity.SubjectId = subjectId;
@@ -234,11 +231,10 @@ namespace SchoolScheduler.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     TempData["ConcurrencyAlert"] = "The activity was already changed by another user";
+                    return RedirectToAction("Index");
                 }
             }
 
-            TempData["selectedOption"] = selectedOption;
-            TempData["selectedEntityId"] = selectedEntityId;
             return RedirectToAction("Index");
         }
 
@@ -246,15 +242,10 @@ namespace SchoolScheduler.Controllers
         {
             Activity activityToDelete = await db.Activities.FindAsync(activityId);
             if (activityToDelete != null)
-                try
-                {
-                    db.Entry(activityToDelete).State = EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    TempData["ConcurrencyAlert"] = "Activity was already deleted";
-                }
+            {
+                db.Entry(activityToDelete).State = EntityState.Deleted;
+                await db.SaveChangesAsync();
+            }
             else
                 TempData["ConcurrencyAlert"] = "Activity was already deleted";
         }
