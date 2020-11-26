@@ -67,9 +67,10 @@ namespace SchoolScheduler.Controllers
                         .SingleOrDefaultAsync();
 
                     if (entityToDelete == null)
-                        TempData["ConcurrencyAlert"] = "Already deleted";
+                        TempData["ConcurrencyAlert"] = @"Entity was already deleted by another user.
+                        Your operation was cancelled";
                     else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
-                        TempData["Alert"] = "Used in an Activity";
+                        TempData["Alert"] = "The entity is used in an activity";
                     else
                         db.Rooms.Remove((Room)entityToDelete);
 
@@ -81,9 +82,10 @@ namespace SchoolScheduler.Controllers
                         .SingleAsync();
 
                     if (entityToDelete == null)
-                        TempData["ConcurrencyAlert"] = "Already deleted";
+                        TempData["ConcurrencyAlert"] = @"Entity was already deleted by another user.
+                        Your operation was cancelled";
                     else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
-                        TempData["Alert"] = "Used in an Activity";
+                        TempData["Alert"] = "The entity is used in an activity";
                     else
                         db.ClassGroups.Remove((ClassGroup)entityToDelete);
 
@@ -95,9 +97,10 @@ namespace SchoolScheduler.Controllers
                         .SingleAsync();
 
                     if (entityToDelete == null)
-                        TempData["ConcurrencyAlert"] = "Already deleted";
+                        TempData["ConcurrencyAlert"] = @"Entity was already deleted by another user.
+                        Your operation was cancelled";
                     else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
-                        TempData["Alert"] = "Used in an Activity";
+                        TempData["Alert"] = "The entity is used in an activity";
                     else
                         db.Subjects.Remove((Subject)entityToDelete);
 
@@ -109,9 +112,10 @@ namespace SchoolScheduler.Controllers
                         .SingleAsync();
 
                     if (entityToDelete == null)
-                        TempData["ConcurrencyAlert"] = "Already deleted";
+                        TempData["ConcurrencyAlert"] = @"Entity was already deleted by another user.
+                        Your operation was cancelled";
                     else if (entityToDelete.Activities != null && entityToDelete.Activities.Any())
-                        TempData["Alert"] = "Used in an Activity";
+                        TempData["Alert"] = "The entity is used in an activity";
                     else
                         db.Teachers.Remove((Teacher)entityToDelete);
 
@@ -133,28 +137,28 @@ namespace SchoolScheduler.Controllers
                     case OptionEnum.Rooms:
                         Room newRoom = new Room(entity);
                         if (await db.Rooms.AnyAsync(r => r.Name == newRoom.Name))
-                            TempData["Alert"] = "Entity already exists";
+                            TempData["Alert"] = "Entity your are trying to add already exists";
                         else
                             await db.Rooms.AddAsync(newRoom);
                         break;
                     case OptionEnum.ClassGroups:
                         ClassGroup newClassGroup = new ClassGroup(entity);
                         if (await db.ClassGroups.AnyAsync(cg => cg.Name == newClassGroup.Name))
-                            TempData["Alert"] = "Entity already exists";
+                            TempData["Alert"] = "Entity your are trying to add already exists";
                         else
                             await db.ClassGroups.AddAsync(newClassGroup);
                         break;
                     case OptionEnum.Subjects:
                         Subject newSubject = new Subject(entity);
                         if (await db.Subjects.AnyAsync(s => s.Name == newSubject.Name))
-                            TempData["Alert"] = "Entity already exists";
+                            TempData["Alert"] = "Entity your are trying to add already exists";
                         else
                             await db.Subjects.AddAsync(newSubject);
                         break;
                     case OptionEnum.Teachers:
                         Teacher newTeacher = new Teacher(entity);
                         if (await db.Teachers.AnyAsync(t => t.Name == newTeacher.Name))
-                            TempData["Alert"] = "Entity already exists";
+                            TempData["Alert"] = "Entity your are trying to add already exists";
                         else
                             await db.Teachers.AddAsync(newTeacher);
                         break;
@@ -162,7 +166,7 @@ namespace SchoolScheduler.Controllers
                 await db.SaveChangesAsync();
             }
             else
-                TempData["Alert"] = "Cannot add empty name";
+                TempData["Alert"] = "Cannot add entity with empty value";
             TempData["selected"] = selectedOption;
             return RedirectToAction("Index");
         }

@@ -47,8 +47,9 @@ namespace SchoolScheduler.Controllers
             Entity selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).SingleOrDefault();
             if (selectedEntity == null)
             {
-                if (selectedEntityId > 0)
-                    TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
+                if (selectedEntityId > 0 && TempData["ConcurrencyAlert"] == null)
+                    TempData["ConcurrencyAlert"] = @"Entity you are trying to select 
+                    was already deleted by another user";
                 if (optionList.entities.Any())
                     selectedEntity = optionList.entities[0];
                 else
@@ -110,7 +111,7 @@ namespace SchoolScheduler.Controllers
             if (entity == null)
             {
                 ViewBag.concurrencyErrorDetected = true;
-                TempData["ConcurrencyAlert"] = "Selected entity was already deleted";
+                TempData["ConcurrencyAlert"] = "Selected entity was already deleted by another user";
                 entity = new Entity();
             }
 
@@ -129,7 +130,8 @@ namespace SchoolScheduler.Controllers
             if (activity == null && idx > 0)
             {
                 ViewBag.concurrencyErrorDetected = true;
-                TempData["ConcurrencyAlert"] = "Selected activity was already deleted";
+                TempData["ConcurrencyAlert"] = @"The activity your are trying to select 
+                was already deleted by another user";
             }
             if (activity == null)
                 activity = new Activity();
@@ -192,7 +194,9 @@ namespace SchoolScheduler.Controllers
                     await db.Teachers.AnyAsync(t => t.Id == teacherId
                     )))
                 {
-                    TempData["ConcurrencyAlert"] = "One of the posted entities was already deleted by another user";
+                    TempData["ConcurrencyAlert"] = @"Form you are trying to post contains 
+                    one or more entities which were already deleted by another user. 
+                    Your operation was cancelled.";
                     return RedirectToAction("Index");
                 }
 
@@ -207,8 +211,8 @@ namespace SchoolScheduler.Controllers
                     && (a.RoomId == roomId || a.ClassGroupId == classGroupId || a.TeacherId == teacherId));
                     if (conflictingActivities)
                     {
-                        TempData["ConcurrencyAlert"] = @"The activity you are trying to create are conflicting 
-                        with already created by another user";
+                        TempData["ConcurrencyAlert"] = @"The activity you are trying to save are conflicting 
+                        with already created one by another user. Your operation was cancelled";
                         return RedirectToAction("Index");
                     }
 
@@ -230,7 +234,8 @@ namespace SchoolScheduler.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    TempData["ConcurrencyAlert"] = "The activity was already changed by another user";
+                    TempData["ConcurrencyAlert"] = @"The activity you are trying to change
+                    was already changed by another user. Your operation was cancelled";
                     return RedirectToAction("Index");
                 }
             }
@@ -247,7 +252,8 @@ namespace SchoolScheduler.Controllers
                 await db.SaveChangesAsync();
             }
             else
-                TempData["ConcurrencyAlert"] = "Activity was already deleted";
+                TempData["ConcurrencyAlert"] = @"The activity you are trying to delete
+                was already deleted by another user. Your operation was cancelled";
         }
 
         private async Task<List<Tuple<string, int>>> GenerateLabels(OptionEnum selectedOption, int entityId)
