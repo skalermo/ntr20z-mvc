@@ -37,10 +37,10 @@ namespace SchoolScheduler.Migrations
                     b.Property<int>("TeacherId")
                         .HasColumnType("int");
 
-                    b.Property<byte[]>("Timestamp")
+                    b.Property<DateTime>("Timestamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("varbinary(4000)");
+                        .HasColumnType("datetime");
 
                     b.HasKey("ActivityId");
 
@@ -64,7 +64,8 @@ namespace SchoolScheduler.Migrations
                             RoomId = 1,
                             SlotId = 1,
                             SubjectId = 1,
-                            TeacherId = 1
+                            TeacherId = 1,
+                            Timestamp = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -73,7 +74,8 @@ namespace SchoolScheduler.Migrations
                             RoomId = 4,
                             SlotId = 3,
                             SubjectId = 3,
-                            TeacherId = 2
+                            TeacherId = 2,
+                            Timestamp = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 

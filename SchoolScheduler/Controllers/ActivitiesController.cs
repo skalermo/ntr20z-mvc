@@ -4,13 +4,16 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using SchoolScheduler.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace SchoolScheduler.Controllers
 {
     public class ActivitiesController : Controller
     {
+        private SchoolContext db = new SchoolContext();
+
         // GET: Activities
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             if (!SchoolContext.CanConnect())
                 return RedirectToAction("Index", "Error");
@@ -24,40 +27,39 @@ namespace SchoolScheduler.Controllers
             var optionList = new OptionList();
             optionList.entities = new List<Entity>();
 
-            using (var context = new SchoolContext())
+            switch (selectedOption)
             {
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                        optionList.entities = context.Rooms.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.ClassGroups:
-                        optionList.entities = context.ClassGroups.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.Subjects:
-                        optionList.entities = context.Subjects.Cast<Entity>().ToList();
-                        break;
-                    case OptionEnum.Teachers:
-                        optionList.entities = context.Teachers.Cast<Entity>().ToList();
-                        break;
-                }
+                case OptionEnum.Rooms:
+                    optionList.entities = await db.Rooms.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.ClassGroups:
+                    optionList.entities = await db.ClassGroups.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.Subjects:
+                    optionList.entities = await db.Subjects.Cast<Entity>().ToListAsync();
+                    break;
+                case OptionEnum.Teachers:
+                    optionList.entities = await db.Teachers.Cast<Entity>().ToListAsync();
+                    break;
             }
 
-            Entity selectedEntity = new Entity();
-            if (Convert.ToInt32(TempData.Peek("selectedEntityId")) > 0)
+            int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
+            Entity selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).SingleOrDefault();
+            if (selectedEntity == null)
             {
-                int selectedEntityId = Convert.ToInt32(TempData["selectedEntityId"]);
-                selectedEntity = optionList.entities.Where(ent => ent.Id == selectedEntityId).Single();
-            }
-            else if (optionList.entities.Any())
-            {
-                selectedEntity = optionList.entities[0];
+                if (selectedEntityId > 0 && TempData["ConcurrencyAlert"] == null)
+                    TempData["ConcurrencyAlert"] = @"Entity you are trying to select 
+                    was already deleted by another user";
+                if (optionList.entities.Any())
+                    selectedEntity = optionList.entities[0];
+                else
+                    selectedEntity = new Entity();
             }
 
             optionList.selectedOption = selectedOption;
             optionList.selectedEntity = selectedEntity;
 
-            var activityLabels = GenerateLabels(selectedOption, selectedEntity.Id);
+            var activityLabels = await GenerateLabels(selectedOption, selectedEntity.Id);
 
             ViewBag.activityLabels = activityLabels;
 
@@ -81,47 +83,58 @@ namespace SchoolScheduler.Controllers
         }
 
         [HttpGet]
-        public ActionResult ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
+        public async Task<ActionResult> ActivityModal(OptionEnum selectedOption, int selectedEntityId, int idx, int slot)
         {
 
-            Activity activity;
             Slot chosenSlot;
             Entity entity;
-            using (var context = new SchoolContext())
+
+            chosenSlot = await db.Slots.FindAsync(slot);
+            switch (selectedOption)
             {
-                chosenSlot = context.Slots.Find(slot);
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                    default:
-                        entity = context.Rooms.Find(selectedEntityId);
-                        break;
-                    case OptionEnum.ClassGroups:
-                        entity = context.ClassGroups.Find(selectedEntityId);
-                        break;
-                    case OptionEnum.Teachers:
-                        entity = context.Teachers.Find(selectedEntityId);
-                        break;
-                }
+                case OptionEnum.Rooms:
+                default:
+                    entity = await db.Rooms.FindAsync(selectedEntityId);
+                    break;
+                case OptionEnum.ClassGroups:
+                    entity = await db.ClassGroups.FindAsync(selectedEntityId);
+                    break;
+                case OptionEnum.Teachers:
+                    entity = await db.Teachers.FindAsync(selectedEntityId);
+                    break;
             }
 
+            ViewBag.concurrencyErrorDetected = false;
+
+            // Selected entity from the dropdown 
+            // which was then deleted by another user
+            if (entity == null)
+            {
+                ViewBag.concurrencyErrorDetected = true;
+                TempData["ConcurrencyAlert"] = "Selected entity was already deleted by another user";
+                entity = new Entity();
+            }
+
+            Activity activity = null;
             if (idx > 0)
             {
-                using (var context = new SchoolContext())
-                {
-                    activity = context.Activities
-                    .Include(activity => activity.Room)
-                    .Include(activity => activity.ClassGroup)
-                    .Include(activity => activity.Subject)
-                    .Include(activity => activity.Teacher)
-                    .Where(activity => activity.ActivityId == idx)
-                    .Single();
-                }
+                activity = await db.Activities
+                .Include(activity => activity.Room)
+                .Include(activity => activity.ClassGroup)
+                .Include(activity => activity.Subject)
+                .Include(activity => activity.Teacher)
+                .Where(activity => activity.ActivityId == idx)
+                .SingleOrDefaultAsync();
             }
-            else
+
+            if (activity == null && idx > 0)
             {
-                activity = new Activity();
+                ViewBag.concurrencyErrorDetected = true;
+                TempData["ConcurrencyAlert"] = @"The activity your are trying to select 
+                was already deleted by another user";
             }
+            if (activity == null)
+                activity = new Activity();
 
             activity.SlotId = chosenSlot.SlotId;
 
@@ -129,144 +142,185 @@ namespace SchoolScheduler.Controllers
             ViewBag.selectedEntity = entity;
             ViewBag.idx = idx;
 
-            using (var db = new SchoolContext())
-            {
-                if (selectedOption != OptionEnum.Rooms)
-                    ViewBag.Rooms = db.Rooms
-                    .Include(r => r.Activities)
-                    .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                    .ToList();
-                else
-                    ViewBag.Rooms = db.Rooms.ToList();
+            if (selectedOption != OptionEnum.Rooms)
+                ViewBag.Rooms = await db.Rooms
+                .Include(r => r.Activities)
+                .Where(r => r.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                .ToListAsync();
+            else
+                ViewBag.Rooms = await db.Rooms.ToListAsync();
 
-                if (selectedOption != OptionEnum.ClassGroups)
-                    ViewBag.ClassGroups = db.ClassGroups
-                        .Include(cg => cg.Activities)
-                        .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                        .ToList();
-                else
-                    ViewBag.ClassGroups = db.ClassGroups.ToList();
+            if (selectedOption != OptionEnum.ClassGroups)
+                ViewBag.ClassGroups = await db.ClassGroups
+                    .Include(cg => cg.Activities)
+                    .Where(cg => cg.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                    .ToListAsync();
+            else
+                ViewBag.ClassGroups = await db.ClassGroups.ToListAsync();
 
-                ViewBag.Subjects = db.Subjects.ToList();
+            ViewBag.Subjects = await db.Subjects.ToListAsync();
 
-                if (selectedOption != OptionEnum.Teachers)
-                    ViewBag.Teachers = db.Teachers
-                    .Include(t => t.Activities)
-                    .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
-                    .ToList();
-                else
-                    ViewBag.Teachers = db.Teachers.ToList();
-            }
+            if (selectedOption != OptionEnum.Teachers)
+                ViewBag.Teachers = await db.Teachers
+                .Include(t => t.Activities)
+                .Where(t => t.Activities.All(a => a.ActivityId == idx || a.SlotId != slot))
+                .ToListAsync();
+            else
+                ViewBag.Teachers = await db.Teachers.ToListAsync();
 
             return PartialView(activity);
         }
 
         [HttpPost]
-        public ActionResult ModalAction(OptionEnum selectedOption, int selectedEntityId,
-        int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId)
+        public async Task<ActionResult> ModalAction(OptionEnum selectedOption, int selectedEntityId,
+        int activityId, int roomId, int classGroupId, int subjectId, int teacherId, int slotId,
+        DateTime timestamp)
         {
+            TempData["selectedOption"] = selectedOption;
+            TempData["selectedEntityId"] = selectedEntityId;
+
             if (Request.Form.ContainsKey("deleteButton"))
             {
-                DeleteActivity(activityId);
+                await DeleteActivity(activityId, timestamp);
+                return RedirectToAction("Index");
             }
             else if (Request.Form.ContainsKey("saveButton"))
             {
-                using (var db = new SchoolContext())
+                // todo check if these fields are not already deleted
+                if (!(
+                    await db.Rooms.AnyAsync(r => r.Id == roomId) &&
+                    await db.ClassGroups.AnyAsync(cg => cg.Id == classGroupId) &&
+                    await db.Subjects.AnyAsync(s => s.Id == subjectId) &&
+                    await db.Teachers.AnyAsync(t => t.Id == teacherId
+                    )))
                 {
-                    Activity activity = db.Activities.Find(activityId);
-                    if (activity == null)
+                    TempData["ConcurrencyAlert"] = @"Form you are trying to post contains 
+                    one or more entities which were already deleted by another user. 
+                    Your operation was cancelled.";
+                    return RedirectToAction("Index");
+                }
+
+                Activity activity = await db.Activities.FindAsync(activityId);
+                if (activity == null)
+                {
+                    // we are adding activity
+
+                    // check if another user concurrently already occupied slot
+                    var conflictingActivities = await db.Activities
+                    .AnyAsync(a => a.SlotId == slotId
+                    && (a.RoomId == roomId || a.ClassGroupId == classGroupId || a.TeacherId == teacherId));
+                    if (conflictingActivities)
                     {
-                        activity = new Activity();
-                        db.Activities.Add(activity);
+                        TempData["ConcurrencyAlert"] = @"The activity you are trying to save are conflicting 
+                        with already created one by another user. Your operation was cancelled";
+                        return RedirectToAction("Index");
                     }
 
+                    activity = new Activity();
+                    await db.Activities.AddAsync(activity);
+                }
+
+                try
+                {
                     activity.RoomId = roomId;
                     activity.ClassGroupId = classGroupId;
                     activity.SubjectId = subjectId;
                     activity.TeacherId = teacherId;
-                    activity.SlotId = slotId;
 
-                    db.SaveChanges();
+                    activity.SlotId = slotId;
+                    db.Entry(activity).OriginalValues["Timestamp"] = timestamp;
+
+                    await db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    TempData["ConcurrencyAlert"] = @"The activity you are trying to change
+                    was already changed by another user. Your operation was cancelled";
+                    return RedirectToAction("Index");
                 }
             }
 
-            TempData["selectedOption"] = selectedOption;
-            TempData["selectedEntityId"] = selectedEntityId;
             return RedirectToAction("Index");
         }
 
-        private void DeleteActivity(int activityId)
+        private async Task DeleteActivity(int activityId, DateTime timestamp)
         {
-            Activity activity = new Activity() { ActivityId = activityId };
-            using (var db = new SchoolContext())
+            Activity activityToDelete = await db.Activities.FindAsync(activityId);
+            if (activityToDelete != null)
             {
-                db.Activities.Attach(activity);
-                db.Activities.Remove(activity);
-                db.SaveChanges();
+                if ((DateTime)db.Entry(activityToDelete).OriginalValues["Timestamp"] != timestamp)
+                {
+                    TempData["ConcurrencyAlert"] = @"The activity you are trying to delete
+                was already modified by another user. Your operation was cancelled";
+                    return;
+                }
+
+                db.Entry(activityToDelete).State = EntityState.Deleted;
+                await db.SaveChangesAsync();
             }
+            else
+                TempData["ConcurrencyAlert"] = @"The activity you are trying to delete
+                was already deleted by another user. Your operation was cancelled";
         }
 
-        private List<Tuple<string, int>> GenerateLabels(OptionEnum selectedOption, int entityId)
+        private async Task<List<Tuple<string, int>>> GenerateLabels(OptionEnum selectedOption, int entityId)
         {
             List<Activity> activities = null;
-            using (var context = new SchoolContext())
+            switch (selectedOption)
             {
-                switch (selectedOption)
-                {
-                    case OptionEnum.Rooms:
-                    default:
-                        if (context.Rooms.Any())
-                            activities = context.Rooms
-                                .Include(r => r.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(r => r.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(r => r.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                .Where(r => r.Id == entityId)
-                                .Select(r => r.Activities)
-                                .Single();
-                        break;
-                    case OptionEnum.ClassGroups:
-                        if (context.ClassGroups.Any())
-                            activities = context.ClassGroups
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(cg => cg.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                             .Where(cg => cg.Id == entityId)
-                             .Select(cg => cg.Activities)
-                             .Single();
-                        break;
-                    case OptionEnum.Subjects:
-                        if (context.Subjects.Any())
-                            activities = context.Subjects
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(s => s.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                 .Where(s => s.Id == entityId)
-                                 .Select(s => s.Activities)
-                                 .Single();
-                        break;
-                    case OptionEnum.Teachers:
-                        if (context.Teachers.Any())
-                            activities = context.Teachers
-                                .Include(t => t.Activities)
-                                    .ThenInclude(a => a.Room)
-                                 .Include(t => t.Activities)
-                                    .ThenInclude(a => a.Subject)
-                                 .Include(t => t.Activities)
-                                    .ThenInclude(a => a.ClassGroup)
-                                .Where(t => t.Id == entityId)
-                                .Select(t => t.Activities)
-                                .Single();
-                        break;
-                }
+                case OptionEnum.Rooms:
+                default:
+                    if (await db.Rooms.AnyAsync())
+                        activities = await db.Rooms
+                            .Include(r => r.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(r => r.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(r => r.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                            .Where(r => r.Id == entityId)
+                            .Select(r => r.Activities)
+                            .SingleAsync();
+                    break;
+                case OptionEnum.ClassGroups:
+                    if (await db.ClassGroups.AnyAsync())
+                        activities = await db.ClassGroups
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(cg => cg.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                         .Where(cg => cg.Id == entityId)
+                         .Select(cg => cg.Activities)
+                         .SingleAsync();
+                    break;
+                case OptionEnum.Subjects:
+                    if (await db.Subjects.AnyAsync())
+                        activities = await db.Subjects
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(s => s.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                             .Where(s => s.Id == entityId)
+                             .Select(s => s.Activities)
+                             .SingleAsync();
+                    break;
+                case OptionEnum.Teachers:
+                    if (await db.Teachers.AnyAsync())
+                        activities = await db.Teachers
+                            .Include(t => t.Activities)
+                                .ThenInclude(a => a.Room)
+                             .Include(t => t.Activities)
+                                .ThenInclude(a => a.Subject)
+                             .Include(t => t.Activities)
+                                .ThenInclude(a => a.ClassGroup)
+                            .Where(t => t.Id == entityId)
+                            .Select(t => t.Activities)
+                            .SingleAsync();
+                    break;
             }
             if (activities == null)
                 activities = new List<Activity>();
@@ -298,6 +352,15 @@ namespace SchoolScheduler.Controllers
                 labels[activity.SlotId - 1] = Tuple.Create(strToShow, activity.ActivityId);
             }
             return labels;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

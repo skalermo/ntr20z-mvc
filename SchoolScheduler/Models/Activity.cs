@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SchoolScheduler.Models
@@ -11,8 +12,7 @@ namespace SchoolScheduler.Models
         public int RoomId { get; set; }
         public int SlotId { get; set; }
 
-        [Timestamp]
-        public byte[] Timestamp { get; set; }
+        public DateTime Timestamp { get; set; }
         public virtual Teacher Teacher { get; set; }
         public virtual Subject Subject { get; set; }
         public virtual ClassGroup ClassGroup { get; set; }

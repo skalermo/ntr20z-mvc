@@ -3,6 +3,15 @@
 @{
     string modalTitle = ViewBag.idx != 0 ? "Edit Activity" : "Add New Activity";
 }
+
+@if (ViewBag.concurrencyErrorDetected == true)
+{
+    <script>
+        document.getElementById("activityModal").modal("close");
+    </script>
+}
+else {
+
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -132,6 +141,7 @@
                                 <input type="hidden" name="selectedEntityId" value=@ViewBag.selectedEntity.Id />
                                 <input type="hidden" name="activityId" value=@ViewBag.idx />
                                 <input type="hidden" name="slotId" value="@Model.SlotId" />
+                                <input type="hidden" name="timestamp" value="@Model.Timestamp" />
 
                             <div class="modal-footer">
                                 <input type="submit" name="deleteButton" value="Delete" class="btn btn-secondary" @(ViewBag.idx == 0 ? "disabled" : "")>
@@ -141,7 +151,14 @@
     }
                     </div>
                 </div>
+}
 
+@if (ViewBag.concurrencyErrorDetected == true) 
+{
+    <script>
+        document.forms[0].submit();
+    </script>
+}
 
 <script type="text/javascript">
     $('form').submit(function(e) {
